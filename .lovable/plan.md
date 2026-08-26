@@ -54,8 +54,14 @@ No ₦20,000 prize, no midterm assessment, no invented mock count, scholarship r
 - Registration, duplicate checks, ID generation, share verification and admin reads run in server functions, not the browser.
 - Performance: responsive/lazy images, no heavy animation libraries beyond light scroll reveals, images sized for low-end Android.
 
+## Supplied content now in hand
+
+- Testimonials for all three students, used verbatim (excerpt on the landing page, full text in the modal).
+- Result images: Toluwanimi 318, Jonathan Faith Onome 314, Kolawole Samuel 309 — each redacted before use.
+- Photos: the lady with purple braids is Jonathan Faith Onome. The two male photos are used for Kolawole Samuel and Onabanjo Toluwanimi — tell me which is which and I'll assign them; otherwise I'll leave both slots swappable from the admin story editor so you can correct in one click.
+
 ## Open items (blocking only the sections that need them)
 
-- Student photos, full testimonials, result images — you'll upload next.
-- WhatsApp / Telegram class links — built as admin-editable fields with placeholders until you provide them.
+- WhatsApp / Telegram class links — admin-editable fields with placeholders until you provide them.
 - Real practice questions and any contact/social details.
+
