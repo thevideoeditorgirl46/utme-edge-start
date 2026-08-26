@@ -18,7 +18,7 @@ A mobile-first campaign website plus registration, student dashboard, practice r
 4. Learning journey — six-step vertical progression on mobile, staggered rail on desktop.
 5. Mock exams — purpose only, no invented count.
 6. Scholarship — "Perform. Stand out. Move forward.", Premium Class Scholarship for top mock performers, "Terms & conditions apply."
-7. Real students. Real results. — one featured story + two supporting; photo, name, score count-up, testimonial excerpt, View result (lightbox) and Read full story (modal). Content is admin-managed; until you upload the photos, testimonials and result images, each slot renders a clearly-labelled "awaiting asset" placeholder rather than invented content.
+7. Real students. Real results. — Jonathan Faith Onome (314) as the featured story, Onabanjo Toluwanimi (318) and Kolawole Samuel (309) as supporting. Each shows photo, name, score count-up, a short verbatim excerpt, "View result" (lightbox on the supplied result image) and "Read full story" (full testimonial modal, kept word-for-word). The 314 testimonial is attributed to Jonathan Faith Onome. Result images are cropped/redacted to hide JAMB registration numbers before publishing.
 8. How it works — 4 steps, explicitly automated, no approval step.
 9. FAQ — accordion, only the listed topics.
 10. Final CTA + footer (logo, brand line, nav, contact/social only once supplied).
