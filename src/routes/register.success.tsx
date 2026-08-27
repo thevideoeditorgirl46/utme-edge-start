@@ -22,7 +22,7 @@ export const Route = createFileRoute("/register/success")({
     ],
   }),
   validateSearch: (search: Record<string, unknown>) => ({
-    id: typeof search.id === "string" ? search.id : "",
+    id: typeof search["id"] === "string" ? search["id"] : "",
   }),
   component: SuccessPage,
 });
