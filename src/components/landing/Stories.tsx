@@ -1,9 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Quote, Star } from "lucide-react";
+import { BookOpenText, Quote, Star } from "lucide-react";
 
 import { SectionHeading } from "@/components/landing/Sections";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { getLandingContent } from "@/lib/public.functions";
 
 export function Stories() {
@@ -57,6 +66,45 @@ export function Stories() {
                     className="mt-4 w-full rounded-xl border border-border object-contain"
                   />
                 ) : null}
+
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="mt-4 w-full">
+                      <BookOpenText className="size-4" />
+                      Read full story
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+                    <DialogHeader>
+                      <DialogTitle className="font-display">{s.student_name}</DialogTitle>
+                      <DialogDescription className="flex items-center gap-1 font-semibold text-accent">
+                        <Star className="size-3.5 fill-current" />
+                        UTME {s.utme_score}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      {s.photo_url ? (
+                        <img
+                          src={s.photo_url}
+                          alt={`${s.student_name}, Newton Edge Tutorial student`}
+                          loading="lazy"
+                          className="mx-auto size-24 rounded-full border border-gold/40 object-cover"
+                        />
+                      ) : null}
+                      <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+                        {s.full_story}
+                      </p>
+                      {s.result_image_url ? (
+                        <img
+                          src={s.result_image_url}
+                          alt={`${s.student_name}'s UTME result showing ${s.utme_score}`}
+                          loading="lazy"
+                          className="w-full rounded-xl border border-border object-contain"
+                        />
+                      ) : null}
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
           ))}
