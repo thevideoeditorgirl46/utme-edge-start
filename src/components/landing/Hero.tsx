@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-hero-gradient text-primary-foreground">
+    <section className="relative overflow-hidden rounded-b-[2.5rem] bg-hero-gradient text-primary-foreground sm:rounded-b-[4rem]">
       <div
         aria-hidden
         className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-gold/15 blur-3xl"
