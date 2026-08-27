@@ -6,12 +6,23 @@ import { Button } from "@/components/ui/button";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden rounded-b-[2.5rem] bg-hero-gradient text-primary-foreground sm:rounded-b-[4rem]">
+    <section className="relative overflow-hidden rounded-bl-[4.5rem] bg-hero-gradient text-primary-foreground sm:rounded-bl-[8rem] lg:rounded-bl-[10rem]">
       <div
         aria-hidden
         className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-gold/15 blur-3xl"
       />
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 pb-16 pt-12 sm:pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-14 lg:pb-24">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute bottom-10 left-6 hidden opacity-40 lg:block"
+      >
+        <div className="grid grid-cols-6 gap-2">
+          {Array.from({ length: 24 }).map((_, i) => (
+            <span key={i} className="size-1 rounded-full bg-gold/60" />
+          ))}
+        </div>
+      </div>
+
+      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 pb-20 pt-12 sm:pb-24 sm:pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-14">
         <div>
           <p className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
             Registration open
@@ -62,15 +73,23 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="relative">
-          <div className="absolute inset-0 -rotate-2 rounded-3xl border border-gold/30" aria-hidden />
+        {/* Circular portrait frame, as in the design references */}
+        <div className="relative mx-auto w-full max-w-xs sm:max-w-sm lg:max-w-md">
+          <div
+            aria-hidden
+            className="absolute -inset-3 rounded-full border-2 border-gold/50 sm:-inset-4"
+          />
+          <div
+            aria-hidden
+            className="absolute -inset-3 -rotate-6 rounded-full border border-gold/20 sm:-inset-4"
+          />
           <img
             src={heroStudent}
             alt="A UTME candidate working through mathematics and physics calculations with a scientific calculator"
             width={1280}
             height={1600}
             fetchPriority="high"
-            className="relative aspect-[4/5] w-full rounded-3xl object-cover shadow-lift sm:aspect-[5/4] lg:aspect-[4/5]"
+            className="relative aspect-square w-full rounded-full object-cover object-[center_18%] shadow-lift"
           />
         </div>
       </div>
