@@ -72,10 +72,6 @@ export function Hero() {
             fetchPriority="high"
             className="relative aspect-[4/5] w-full rounded-3xl object-cover shadow-lift sm:aspect-[5/4] lg:aspect-[4/5]"
           />
-          <div className="absolute -bottom-5 left-4 rounded-2xl bg-background px-4 py-3 shadow-lift">
-            <p className="font-display text-2xl font-extrabold text-foreground">318</p>
-            <p className="text-xs font-medium text-muted-foreground">Highest 2026 NET score</p>
-          </div>
         </div>
       </div>
     </section>
