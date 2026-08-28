@@ -167,8 +167,19 @@ function RegisterPage() {
                     <Input
                       id="email"
                       type="email"
+                      autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Confirm email" id="confirmEmail">
+                    <Input
+                      id="confirmEmail"
+                      type="email"
+                      autoComplete="email"
+                      value={confirmEmail}
+                      onChange={(e) => setConfirmEmail(e.target.value)}
+                      onPaste={(e) => e.preventDefault()}
                     />
                   </Field>
                   <Field label="Create a password" id="password">
