@@ -54,6 +54,7 @@ function RegisterPage() {
   const [busy, setBusy] = useState(false);
 
   const [email, setEmail] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [whatsappNumber, setWhatsapp] = useState("");
@@ -75,7 +76,10 @@ function RegisterPage() {
       if (!fullName.trim()) return "Please enter your full name.";
       if (!whatsappNumber.trim()) return "Please enter your WhatsApp number.";
       if (!user) {
-        if (!email.trim()) return "Please enter your email.";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+          return "Please enter a valid email address.";
+        if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase())
+          return "Your email addresses don't match. Please re-check them.";
         if (password.length < 6) return "Password must be at least 6 characters.";
       }
     }
@@ -163,8 +167,19 @@ function RegisterPage() {
                     <Input
                       id="email"
                       type="email"
+                      autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Confirm email" id="confirmEmail">
+                    <Input
+                      id="confirmEmail"
+                      type="email"
+                      autoComplete="email"
+                      value={confirmEmail}
+                      onChange={(e) => setConfirmEmail(e.target.value)}
+                      onPaste={(e) => e.preventDefault()}
                     />
                   </Field>
                   <Field label="Create a password" id="password">
