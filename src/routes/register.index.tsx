@@ -76,7 +76,10 @@ function RegisterPage() {
       if (!fullName.trim()) return "Please enter your full name.";
       if (!whatsappNumber.trim()) return "Please enter your WhatsApp number.";
       if (!user) {
-        if (!email.trim()) return "Please enter your email.";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+          return "Please enter a valid email address.";
+        if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase())
+          return "Your email addresses don't match. Please re-check them.";
         if (password.length < 6) return "Password must be at least 6 characters.";
       }
     }
