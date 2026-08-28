@@ -16,14 +16,6 @@ export const SUBJECT_OPTIONS = [
   "Physics",
   "Chemistry",
   "Biology",
-  "Economics",
-  "Government",
-  "Literature-in-English",
-  "Commerce",
-  "Accounting",
-  "Agricultural Science",
-  "CRS / IRS",
-  "Geography",
 ] as const;
 
 export const CHALLENGE_OPTIONS = [

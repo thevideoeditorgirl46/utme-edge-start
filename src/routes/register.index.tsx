@@ -54,6 +54,7 @@ function RegisterPage() {
   const [busy, setBusy] = useState(false);
 
   const [email, setEmail] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [whatsappNumber, setWhatsapp] = useState("");
