@@ -57,7 +57,18 @@ export const getAdminData = createServerFn({ method: "GET" })
 
 export const saveClassLinks = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { whatsapp: string; telegram: string; flyer: string }) => input)
+  .inputValidator(
+    (input: {
+      whatsapp_channel: string;
+      whatsapp_group: string;
+      telegram_physics: string;
+      telegram_chemistry: string;
+      telegram_math: string;
+      telegram_english: string;
+      telegram_biology: string;
+      flyer: string;
+    }) => input,
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId);
@@ -65,8 +76,13 @@ export const saveClassLinks = createServerFn({ method: "POST" })
     const { error } = await supabase
       .from("class_links")
       .update({
-        whatsapp_url: data.whatsapp.trim() || null,
-        telegram_url: data.telegram.trim() || null,
+        whatsapp_channel_url: data.whatsapp_channel.trim() || null,
+        whatsapp_group_url: data.whatsapp_group.trim() || null,
+        telegram_physics_url: data.telegram_physics.trim() || null,
+        telegram_chemistry_url: data.telegram_chemistry.trim() || null,
+        telegram_math_url: data.telegram_math.trim() || null,
+        telegram_english_url: data.telegram_english.trim() || null,
+        telegram_biology_url: data.telegram_biology.trim() || null,
         flyer_url: data.flyer.trim() || null,
         updated_at: new Date().toISOString(),
       })

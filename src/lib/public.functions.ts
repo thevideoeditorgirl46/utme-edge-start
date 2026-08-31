@@ -14,8 +14,13 @@ export type SuccessStory = {
 };
 
 export type ClassLinks = {
-  whatsapp_url: string | null;
-  telegram_url: string | null;
+  whatsapp_channel_url: string | null;
+  whatsapp_group_url: string | null;
+  telegram_physics_url: string | null;
+  telegram_chemistry_url: string | null;
+  telegram_math_url: string | null;
+  telegram_english_url: string | null;
+  telegram_biology_url: string | null;
   flyer_url: string | null;
 };
 
@@ -30,7 +35,13 @@ export const getLandingContent = createServerFn({ method: "GET" }).handler(async
       )
       .eq("published", true)
       .order("sort_order", { ascending: true }),
-    supabase.from("class_links").select("whatsapp_url, telegram_url, flyer_url").eq("id", 1).maybeSingle(),
+    supabase
+      .from("class_links")
+      .select(
+        "whatsapp_channel_url, whatsapp_group_url, telegram_physics_url, telegram_chemistry_url, telegram_math_url, telegram_english_url, telegram_biology_url, flyer_url",
+      )
+      .eq("id", 1)
+      .maybeSingle(),
   ]);
 
   return {

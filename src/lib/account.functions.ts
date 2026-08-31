@@ -111,10 +111,12 @@ export const getMyAccount = createServerFn({ method: "GET" })
         .limit(5),
       supabase
         .from("class_links")
-        .select("whatsapp_url, telegram_url, flyer_url")
+        .select(
+          "whatsapp_channel_url, whatsapp_group_url, telegram_physics_url, telegram_chemistry_url, telegram_math_url, telegram_english_url, telegram_biology_url, flyer_url",
+        )
         .eq("id", 1)
         .maybeSingle(),
-      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+      isAdmin(userId),
     ]);
 
     return {
@@ -123,6 +125,6 @@ export const getMyAccount = createServerFn({ method: "GET" })
       unlocked: Boolean(unlock.data),
       submissions: submissions.data ?? [],
       links: links.data ?? null,
-      isAdmin: admin.data === true,
+      isAdmin: admin,
     };
   });
