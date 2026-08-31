@@ -30,13 +30,21 @@ export function generateRegistrationId() {
   return `NET-${code}`;
 }
 
+export async function isAdmin(userId: string): Promise<boolean> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return Boolean(data);
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function assertAdmin(supabase: SupabaseClient<any, any, any>, userId: string) {
-  const { data, error } = await supabase.rpc("has_role", {
-    _user_id: userId,
-    _role: "admin",
-  });
-  if (error || data !== true) {
+export async function assertAdmin(_supabase: SupabaseClient<any, any, any>, userId: string) {
+  if (!(await isAdmin(userId))) {
     throw new Error("Admin access required");
   }
 }

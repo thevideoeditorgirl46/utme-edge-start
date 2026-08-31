@@ -9,6 +9,15 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { getMyAccount } from "@/lib/account.functions";
 import { BRAND_ASSETS } from "@/lib/brand";
+import type { ClassLinks } from "@/lib/public.functions";
+
+const SUBJECT_TELEGRAM_MAP: Record<string, keyof ClassLinks> = {
+  "Use of English": "telegram_english_url",
+  Mathematics: "telegram_math_url",
+  Physics: "telegram_physics_url",
+  Chemistry: "telegram_chemistry_url",
+  Biology: "telegram_biology_url",
+};
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -76,35 +85,66 @@ function DashboardPage() {
                 <Stat label="UTME year" value={data.registration.utme_year} />
               </dl>
 
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <Button
-                  asChild={Boolean(data.links?.whatsapp_url)}
-                  disabled={!data.links?.whatsapp_url}
-                  className="h-12 flex-1 text-base"
+                  asChild={Boolean(data.links?.whatsapp_channel_url)}
+                  disabled={!data.links?.whatsapp_channel_url}
+                  className="h-12 text-base"
                 >
-                  {data.links?.whatsapp_url ? (
-                    <a href={data.links.whatsapp_url} target="_blank" rel="noreferrer">
-                      Join WhatsApp class
+                  {data.links?.whatsapp_channel_url ? (
+                    <a href={data.links.whatsapp_channel_url} target="_blank" rel="noreferrer">
+                      Follow WhatsApp channel
                     </a>
                   ) : (
-                    <span>WhatsApp link coming soon</span>
+                    <span>WhatsApp channel coming soon</span>
                   )}
                 </Button>
                 <Button
-                  asChild={Boolean(data.links?.telegram_url)}
-                  disabled={!data.links?.telegram_url}
+                  asChild={Boolean(data.links?.whatsapp_group_url)}
+                  disabled={!data.links?.whatsapp_group_url}
                   variant="outline"
-                  className="h-12 flex-1 text-base"
+                  className="h-12 text-base"
                 >
-                  {data.links?.telegram_url ? (
-                    <a href={data.links.telegram_url} target="_blank" rel="noreferrer">
-                      Join Telegram class
+                  {data.links?.whatsapp_group_url ? (
+                    <a href={data.links.whatsapp_group_url} target="_blank" rel="noreferrer">
+                      Join general WhatsApp group
                     </a>
                   ) : (
-                    <span>Telegram link coming soon</span>
+                    <span>WhatsApp group coming soon</span>
                   )}
                 </Button>
               </div>
+
+              {data.registration?.subjects?.length ? (
+                <div className="mt-6">
+                  <h3 className="font-display text-sm font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                    Your Telegram subject classes
+                  </h3>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    {data.registration.subjects.map((subject) => {
+                      const key = SUBJECT_TELEGRAM_MAP[subject];
+                      const url = key ? (data.links as ClassLinks | null)?.[key] : undefined;
+                      return (
+                        <Button
+                          key={subject}
+                          asChild={Boolean(url)}
+                          disabled={!url}
+                          variant="outline"
+                          className="h-12 text-base"
+                        >
+                          {url ? (
+                            <a href={url} target="_blank" rel="noreferrer">
+                              Join {subject} Telegram
+                            </a>
+                          ) : (
+                            <span>{subject} Telegram coming soon</span>
+                          )}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
             </section>
 
             <section className="mt-6 rounded-2xl border border-border bg-card p-6">
