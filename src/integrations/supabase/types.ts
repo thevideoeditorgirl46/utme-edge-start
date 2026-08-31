@@ -18,22 +18,43 @@ export type Database = {
         Row: {
           flyer_url: string | null
           id: number
+          telegram_biology_url: string | null
+          telegram_chemistry_url: string | null
+          telegram_english_url: string | null
+          telegram_math_url: string | null
+          telegram_physics_url: string | null
           telegram_url: string | null
           updated_at: string
+          whatsapp_channel_url: string | null
+          whatsapp_group_url: string | null
           whatsapp_url: string | null
         }
         Insert: {
           flyer_url?: string | null
           id?: number
+          telegram_biology_url?: string | null
+          telegram_chemistry_url?: string | null
+          telegram_english_url?: string | null
+          telegram_math_url?: string | null
+          telegram_physics_url?: string | null
           telegram_url?: string | null
           updated_at?: string
+          whatsapp_channel_url?: string | null
+          whatsapp_group_url?: string | null
           whatsapp_url?: string | null
         }
         Update: {
           flyer_url?: string | null
           id?: number
+          telegram_biology_url?: string | null
+          telegram_chemistry_url?: string | null
+          telegram_english_url?: string | null
+          telegram_math_url?: string | null
+          telegram_physics_url?: string | null
           telegram_url?: string | null
           updated_at?: string
+          whatsapp_channel_url?: string | null
+          whatsapp_group_url?: string | null
           whatsapp_url?: string | null
         }
         Relationships: []
