@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { getMyAccount } from "@/lib/account.functions";
 import { BRAND_ASSETS } from "@/lib/brand";
+import type { ClassLinks } from "@/lib/public.functions";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
