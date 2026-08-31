@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-import { generateRegistrationId } from "./net.server";
+import { generateRegistrationId, isAdmin } from "./net.server";
 
 export type RegistrationInput = {
   fullName: string;
