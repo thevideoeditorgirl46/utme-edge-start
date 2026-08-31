@@ -11,6 +11,14 @@ import { getMyAccount } from "@/lib/account.functions";
 import { BRAND_ASSETS } from "@/lib/brand";
 import type { ClassLinks } from "@/lib/public.functions";
 
+const SUBJECT_TELEGRAM_MAP: Record<string, keyof ClassLinks> = {
+  "Use of English": "telegram_english_url",
+  Mathematics: "telegram_math_url",
+  Physics: "telegram_physics_url",
+  Chemistry: "telegram_chemistry_url",
+  Biology: "telegram_biology_url",
+};
+
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
