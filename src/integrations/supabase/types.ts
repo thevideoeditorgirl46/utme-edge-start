@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          id: string
+          new_status: string | null
+          previous_status: string | null
+          reason: string | null
+          submission_id: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          id?: string
+          new_status?: string | null
+          previous_status?: string | null
+          reason?: string | null
+          submission_id?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          id?: string
+          new_status?: string | null
+          previous_status?: string | null
+          reason?: string | null
+          submission_id?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       class_links: {
         Row: {
           flyer_url: string | null
@@ -267,6 +303,69 @@ export type Database = {
         }
         Relationships: []
       }
+      share_verifications: {
+        Row: {
+          automated_recommendation: string | null
+          automated_score: number | null
+          claimed_points: number
+          created_at: string
+          fraud_flags: string[]
+          fraud_score: number
+          id: string
+          image_hash: string | null
+          image_path: string
+          perceptual_hash: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          share_type: string
+          status: string
+          student_id: string
+          updated_at: string
+          verification_method: string
+        }
+        Insert: {
+          automated_recommendation?: string | null
+          automated_score?: number | null
+          claimed_points?: number
+          created_at?: string
+          fraud_flags?: string[]
+          fraud_score?: number
+          id?: string
+          image_hash?: string | null
+          image_path: string
+          perceptual_hash?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          share_type: string
+          status?: string
+          student_id: string
+          updated_at?: string
+          verification_method?: string
+        }
+        Update: {
+          automated_recommendation?: string | null
+          automated_score?: number | null
+          claimed_points?: number
+          created_at?: string
+          fraud_flags?: string[]
+          fraud_score?: number
+          id?: string
+          image_hash?: string | null
+          image_path?: string
+          perceptual_hash?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          share_type?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+          verification_method?: string
+        }
+        Relationships: []
+      }
       sharing_submissions: {
         Row: {
           created_at: string
@@ -360,12 +459,51 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_settings: {
+        Row: {
+          auto_approve_enabled: boolean
+          auto_approve_max_fraud: number
+          auto_approve_min_confidence: number
+          auto_reject_min_fraud: number
+          created_at: string
+          friend_points: number
+          group_points: number
+          id: number
+          required_points: number
+          updated_at: string
+        }
+        Insert: {
+          auto_approve_enabled?: boolean
+          auto_approve_max_fraud?: number
+          auto_approve_min_confidence?: number
+          auto_reject_min_fraud?: number
+          created_at?: string
+          friend_points?: number
+          group_points?: number
+          id?: number
+          required_points?: number
+          updated_at?: string
+        }
+        Update: {
+          auto_approve_enabled?: boolean
+          auto_approve_max_fraud?: number
+          auto_approve_min_confidence?: number
+          auto_reject_min_fraud?: number
+          created_at?: string
+          friend_points?: number
+          group_points?: number
+          id?: number
+          required_points?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      verified_share_points: { Args: { _user_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "student"
