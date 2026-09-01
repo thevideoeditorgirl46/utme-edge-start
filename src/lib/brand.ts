@@ -1,7 +1,7 @@
 /** Brand + student media served from Lovable asset storage. */
 export const BRAND_ASSETS = {
   logo: "/__l5e/assets-v1/e6d1df2b-c98a-4c36-8c22-e4df716aa042/net-logo.jpg",
-  flyer: "/__l5e/assets-v1/27225444-8310-4e14-a571-44aa98746f6d/foundational-flyer.png",
+  flyer: "/__l5e/assets-v1/5eac38ec-b35e-4a51-bf20-cf2c02adb9e4/foundational-flyer-v2.png",
 } as const;
 
 export const BRAND = {
