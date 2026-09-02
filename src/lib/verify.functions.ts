@@ -52,7 +52,7 @@ export const getShareStatus = createServerFn({ method: "GET" })
     return {
       verifiedPoints: approved.reduce((sum, s) => sum + (s.claimed_points ?? 0), 0),
       pendingPoints: submissions
-        .filter((s) => s.status === "pending" || s.status === "review")
+        .filter((s) => s.status === "pending" || s.status === "needs_review")
         .reduce((sum, s) => sum + (s.claimed_points ?? 0), 0),
       requiredPoints: settings.data?.required_points ?? 100,
       friendPoints: settings.data?.friend_points ?? 20,
@@ -157,8 +157,8 @@ export const submitShareVerification = createServerFn({ method: "POST" })
 
     fraud = Math.min(1, Number(fraud.toFixed(2)));
 
-    let status: "pending" | "approved" | "rejected" | "review" = "pending";
-    if (fraud >= (cfg?.auto_reject_min_fraud ?? 0.9)) status = "review";
+    let status: "pending" | "approved" | "rejected" | "needs_review" = "pending";
+    if (fraud >= (cfg?.auto_reject_min_fraud ?? 0.9)) status = "needs_review";
     else if (
       (cfg?.auto_approve_enabled ?? true) &&
       review.recommendation === "AUTO-APPROVE" &&
@@ -166,7 +166,7 @@ export const submitShareVerification = createServerFn({ method: "POST" })
       fraud <= (cfg?.auto_approve_max_fraud ?? 0.2)
     ) {
       status = "approved";
-    } else if (fraud >= 0.5) status = "review";
+    } else if (fraud >= 0.5) status = "needs_review";
 
     const { data: inserted, error } = await supabaseAdmin
       .from("share_verifications")
