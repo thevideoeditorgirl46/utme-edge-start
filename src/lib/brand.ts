@@ -1,7 +1,7 @@
 /** Shared brand media paths. */
 export const BRAND_ASSETS = {
   logo: "/assets/newton-edge-logo.jpg",
-  flyer: "/__l5e/assets-v1/5eac38ec-b35e-4a51-bf20-cf2c02adb9e4/foundational-flyer-v2.png",
+  flyer: "/__l5e/assets-v1/3609abaa-918b-4a6d-8681-8319ec4d866c/foundational-flyer-v3.png",
 } as const;
 
 export const BRAND = {
