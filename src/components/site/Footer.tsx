@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
-import { BRAND, BRAND_ASSETS } from "@/lib/brand";
+import { BRAND_ASSETS } from "@/lib/brand";
 
 export function Footer() {
   return (
@@ -11,7 +11,7 @@ export function Footer() {
             <div className="flex items-center gap-3">
               <img
                 src={BRAND_ASSETS.logo}
-                alt={`${BRAND.name} logo`}
+                alt="Newton Edge Tutorial"
                 width={48}
                 height={48}
                 loading="lazy"

@@ -14,7 +14,7 @@ export function Logo({
     <Link to="/" className={cn("flex items-center gap-2.5", className)} aria-label={BRAND.name}>
       <img
         src={BRAND_ASSETS.logo}
-        alt={`${BRAND.name} logo`}
+        alt="Newton Edge Tutorial"
         width={44}
         height={44}
         className="size-10 rounded-full ring-2 ring-gold/70"
