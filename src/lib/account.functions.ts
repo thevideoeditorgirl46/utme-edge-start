@@ -119,11 +119,19 @@ export const getMyAccount = createServerFn({ method: "GET" })
       isAdmin(userId),
     ]);
 
+    const rows = verifications.data ?? [];
+    const verifiedPoints = rows
+      .filter((r) => r.status === "approved")
+      .reduce((sum, r) => sum + (r.claimed_points ?? 0), 0);
+    const requiredPoints = settings.data?.required_points ?? 100;
+
     return {
       profile: profile.data,
       registration: registration.data,
-      unlocked: Boolean(unlock.data),
-      submissions: submissions.data ?? [],
+      unlocked: verifiedPoints >= requiredPoints,
+      verifiedPoints,
+      requiredPoints,
+      submissions: rows,
       links: links.data ?? null,
       isAdmin: admin,
     };
