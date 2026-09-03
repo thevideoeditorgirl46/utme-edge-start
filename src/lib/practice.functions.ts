@@ -8,18 +8,35 @@ export type PracticeQuestion = {
   options: { key: "A" | "B" | "C" | "D"; text: string }[];
 };
 
+/** Authoritative unlock check: approved share points must meet the configured threshold. */
+async function hasUnlocked(
+  supabase: { from: (t: string) => any },
+  userId: string,
+): Promise<boolean> {
+  const [rows, settings] = await Promise.all([
+    supabase
+      .from("share_verifications")
+      .select("claimed_points")
+      .eq("student_id", userId)
+      .eq("status", "approved"),
+    supabase.from("verification_settings").select("required_points").eq("id", 1).maybeSingle(),
+  ]);
+  const points = ((rows.data ?? []) as { claimed_points: number }[]).reduce(
+    (sum, r) => sum + (r.claimed_points ?? 0),
+    0,
+  );
+  const required = (settings.data as { required_points?: number } | null)?.required_points ?? 100;
+  return points >= required;
+}
+
 export const getPracticeQuestions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
 
-    const unlock = await supabase
-      .from("reward_unlocks")
-      .select("user_id")
-      .eq("user_id", userId)
-      .maybeSingle();
+    const unlocked = await hasUnlocked(supabase as never, userId);
 
-    if (!unlock.data) return { unlocked: false, setTitle: null, questions: [] as PracticeQuestion[] };
+    if (!unlocked) return { unlocked: false, setTitle: null, questions: [] as PracticeQuestion[] };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
