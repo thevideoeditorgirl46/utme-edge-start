@@ -37,6 +37,12 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {user ? (
+            <Button asChild size="sm" variant="ghost" className="hidden sm:inline-flex">
+              <Link to="/practice">Edge Practice</Link>
+            </Button>
+          ) : null}
+
           <Button asChild size="sm" className="hidden sm:inline-flex">
             <Link to={user ? "/dashboard" : "/register"}>
               {user ? "My Dashboard" : "Register Free"}
