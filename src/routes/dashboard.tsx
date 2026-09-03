@@ -147,27 +147,7 @@ function DashboardPage() {
               ) : null}
             </section>
 
-            <section className="mt-6 rounded-2xl border border-border bg-card p-6">
-              <h2 className="font-display text-lg font-bold">Share &amp; unlock practice</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Optional: share the flyer, then submit your screenshot to unlock Edge Practice.
-              </p>
-              <p className="mt-3 text-sm font-medium">
-                Status:{" "}
-                {data.unlocked
-                  ? "Unlocked"
-                  : data.submissions[0]?.status === "pending"
-                    ? "Verification in progress"
-                    : "Not unlocked yet"}
-              </p>
-              <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                <Button asChild variant="outline" className="h-12 flex-1">
-                  <a href={data.links?.flyer_url ?? BRAND_ASSETS.flyer} download target="_blank" rel="noreferrer">
-                    Download the flyer
-                  </a>
-                </Button>
-              </div>
-            </section>
+            <ShareUnlock flyerUrl={data.links?.flyer_url ?? BRAND_ASSETS.flyer} />
           </>
         )}
       </main>
