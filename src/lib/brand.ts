@@ -43,11 +43,19 @@ export const REFERRAL_OPTIONS = [
 export const UTME_YEAR_OPTIONS = ["2027", "2028", "Undecided"] as const;
 
 /** Official share message — must be copied verbatim by students. */
-export const SHARE_MESSAGE = `SEPTEMBER IS HERE. 🌱
+export const SHARE_MESSAGE = `NEWTON EDGE IS SET FOR UTME 2027. 🚀
 
-And this time, we’re starting where it matters most: THE FOUNDATION. 🧱
+Our goal is simple:
 
-The NET Foundational Bootcamp begins September 21 – October 18 for UTME 2027 candidates.
+To produce some of the best UTME students in 2027 — and help the majority of our students perform excellently.
+
+But we know something important:
+
+You cannot build a strong result on a faulty foundation. 🧱
+
+That is why Newton Edge is starting with the FOUNDATION.
+
+The NET Foundational Bootcamp runs from September 21 – October 18 for UTME 2027 candidates.
 
 Expect:
 
@@ -58,10 +66,10 @@ Expect:
 
 🚀 Enrollment is now open.
 
-👉 Join here: https://newtonedgefoundationalbootcamp.netlify.app
+👉 https://utme-edge-start.lovable.app
 
-📞 Questions or enquiries: 07044166931
+📞 07044166931
 
 Start early. Build right. Go further.
 
-©Newton Edge Tutorial`;
+© Newton Edge Tutorial`;
