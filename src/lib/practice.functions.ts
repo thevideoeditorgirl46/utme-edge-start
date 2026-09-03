@@ -80,12 +80,7 @@ export const answerQuestion = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    const unlock = await supabase
-      .from("reward_unlocks")
-      .select("user_id")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (!unlock.data) throw new Error("Practice is locked");
+    if (!(await hasUnlocked(supabase as never, userId))) throw new Error("Practice is locked");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const q = await supabaseAdmin
