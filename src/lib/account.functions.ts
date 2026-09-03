@@ -99,16 +99,16 @@ export const getMyAccount = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
 
-    const [profile, registration, unlock, submissions, links, admin] = await Promise.all([
+    const [profile, registration, settings, verifications, links, admin] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase.from("registrations").select("*").eq("user_id", userId).maybeSingle(),
-      supabase.from("reward_unlocks").select("unlocked_at").eq("user_id", userId).maybeSingle(),
+      supabase.from("verification_settings").select("required_points").eq("id", 1).maybeSingle(),
       supabase
-        .from("sharing_submissions")
-        .select("id, status, verification_note, created_at")
-        .eq("user_id", userId)
+        .from("share_verifications")
+        .select("id, status, claimed_points, rejection_reason, created_at")
+        .eq("student_id", userId)
         .order("created_at", { ascending: false })
-        .limit(5),
+        .limit(10),
       supabase
         .from("class_links")
         .select(
