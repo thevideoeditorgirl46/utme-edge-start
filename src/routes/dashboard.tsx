@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
 
+import { ShareUnlock } from "@/components/dashboard/ShareUnlock";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
 import { Button } from "@/components/ui/button";
