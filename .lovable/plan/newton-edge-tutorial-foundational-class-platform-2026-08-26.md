@@ -12,6 +12,7 @@ A mobile-first campaign website plus registration, student dashboard, practice r
 ## Pages
 
 **Landing (`/`)** — minimal nav (Home, Foundational Class, Student Results, How It Works, FAQ + Register CTA; hamburger sheet on mobile) and these sections in order:
+
 1. Hero — art-directed image of a focused Nigerian UTME candidate with calculator/worked calculations; "FOUNDATIONAL CLASS / FOR UTME CANDIDATES", headline "Build the foundation. Get the edge.", two CTAs.
 2. Why Foundational? — concise gap copy, the real flyer presented as an editorial asset (original proportions, click to enlarge in a lightbox), and the progression Foundation → Understanding → Application → Speed → JAMB.
 3. What you'll build — the five numbered pillars, editorial list style, one line each.
@@ -64,4 +65,3 @@ No ₦20,000 prize, no midterm assessment, no invented mock count, scholarship r
 
 - WhatsApp / Telegram class links — admin-editable fields with placeholders until you provide them.
 - Real practice questions and any contact/social details.
-

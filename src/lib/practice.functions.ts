@@ -8,11 +8,12 @@ export type PracticeQuestion = {
   options: { key: "A" | "B" | "C" | "D"; text: string }[];
 };
 
+type Db = {
+  from: (table: string) => ReturnType<import("@supabase/supabase-js").SupabaseClient["from"]>;
+};
+
 /** Authoritative unlock check: approved share points must meet the configured threshold. */
-async function hasUnlocked(
-  supabase: { from: (t: string) => any },
-  userId: string,
-): Promise<boolean> {
+async function hasUnlocked(supabase: Db, userId: string): Promise<boolean> {
   const [rows, settings] = await Promise.all([
     supabase
       .from("share_verifications")

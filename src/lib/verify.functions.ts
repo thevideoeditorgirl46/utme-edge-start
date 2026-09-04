@@ -87,9 +87,8 @@ export const submitShareVerification = createServerFn({ method: "POST" })
     if (!data.imagePath.startsWith(`${userId}/`)) throw new Error("Invalid upload path");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { automatedReview, dataUrlToBytes, hammingHex, sha256Hex } = await import(
-      "./verify.server"
-    );
+    const { automatedReview, dataUrlToBytes, hammingHex, sha256Hex } =
+      await import("./verify.server");
 
     const settings = await supabaseAdmin
       .from("verification_settings")
@@ -118,7 +117,11 @@ export const submitShareVerification = createServerFn({ method: "POST" })
     const exact = all.filter((r) => r.image_hash === imageHash);
     if (exact.length) {
       const own = exact.some((r) => r.student_id === userId);
-      flags.push(own ? "Exact duplicate of your own earlier screenshot" : "Exact duplicate of another student's screenshot");
+      flags.push(
+        own
+          ? "Exact duplicate of your own earlier screenshot"
+          : "Exact duplicate of another student's screenshot",
+      );
       fraud += own ? 0.7 : 0.9;
     } else if (pHash) {
       const near = all.filter(
@@ -126,7 +129,11 @@ export const submitShareVerification = createServerFn({ method: "POST" })
       );
       if (near.length) {
         const own = near.some((r) => r.student_id === userId);
-        flags.push(own ? "Visually similar to your own earlier screenshot" : "Visually similar to another student's screenshot");
+        flags.push(
+          own
+            ? "Visually similar to your own earlier screenshot"
+            : "Visually similar to another student's screenshot",
+        );
         fraud += own ? 0.5 : 0.75;
       }
     }

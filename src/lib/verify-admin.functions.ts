@@ -110,8 +110,7 @@ export const getVerificationAdminData = createServerFn({ method: "GET" })
       verifiedPoints: approvedPointsByStudent.get(p.id) ?? 0,
       pendingPoints: all
         .filter(
-          (r) =>
-            r.student_id === p.id && (r.status === "pending" || r.status === "needs_review"),
+          (r) => r.student_id === p.id && (r.status === "pending" || r.status === "needs_review"),
         )
         .reduce((s, r) => s + (r.claimed_points ?? 0), 0),
       unlocked: unlockedSet.has(p.id),
@@ -141,7 +140,11 @@ export const getVerificationAdminData = createServerFn({ method: "GET" })
 export const reviewShareVerification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { id: string; decision: "approved" | "rejected" | "needs_review"; reason?: string }) => {
+    (input: {
+      id: string;
+      decision: "approved" | "rejected" | "needs_review";
+      reason?: string;
+    }) => {
       if (!input?.id) throw new Error("Missing submission");
       if (!["approved", "rejected", "needs_review"].includes(input.decision))
         throw new Error("Invalid decision");

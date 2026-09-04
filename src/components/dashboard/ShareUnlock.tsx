@@ -147,16 +147,14 @@ export function ShareUnlock({ flyerUrl }: { flyerUrl?: string | null }) {
         </p>
         <Progress value={Math.min(100, (verified / required) * 100)} className="mt-3" />
         <p className="mt-2 text-sm text-muted-foreground">
-          {data?.unlocked
-            ? "Unlocked — Edge Practice is open."
-            : `${remaining} more points needed`}
+          {data?.unlocked ? "Unlocked — Edge Practice is open." : `${remaining} more points needed`}
           {data?.pendingPoints ? ` · ${data.pendingPoints} points awaiting verification` : ""}
         </p>
         {data ? (
           <p className="mt-2 text-sm">
             👥 Friend × {data.approvedFriends} = {data.approvedFriends * data.friendPoints} points ·
-            🎓 Educational Group × {data.approvedGroups} ={" "}
-            {data.approvedGroups * data.groupPoints} points
+            🎓 Educational Group × {data.approvedGroups} = {data.approvedGroups * data.groupPoints}{" "}
+            points
           </p>
         ) : null}
         {data?.unlocked ? (

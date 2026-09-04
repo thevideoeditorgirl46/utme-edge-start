@@ -23,10 +23,7 @@ export const getAdminData = createServerFn({ method: "GET" })
           .limit(100),
         supabase.from("reward_unlocks").select("user_id"),
         supabase.from("practice_sets").select("*").order("sort_order", { ascending: true }),
-        supabase
-          .from("practice_questions")
-          .select("*")
-          .order("sort_order", { ascending: true }),
+        supabase.from("practice_questions").select("*").order("sort_order", { ascending: true }),
       ]);
 
     const signed = await Promise.all(

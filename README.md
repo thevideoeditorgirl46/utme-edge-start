@@ -2,11 +2,7 @@
 
 Build a complete, production-quality, mobile-first educational website and registration platform for:
 
-
-
 NEWTON EDGE TUTORIAL
-
-
 
 Programme:
 
@@ -14,17 +10,11 @@ FOUNDATIONAL CLASS
 
 For UTME Candidates
 
-
-
 IMPORTANT:
 
 This project must be designed from scratch as a professional EdTech product, not as a generic education template.
 
-
-
 The goal is not simply to make the website look beautiful.
-
-
 
 The website must communicate:
 
@@ -44,11 +34,7 @@ The website must communicate:
 
 - real student results
 
-
-
 The final experience should make a UTME candidate feel:
-
-
 
 “This is a serious preparation platform.”
 
@@ -60,23 +46,15 @@ The final experience should make a UTME candidate feel:
 
 “I want to register.”
 
-
-
---------------------------------------------------
+---
 
 1. BRAND ASSETS AND REFERENCES
 
---------------------------------------------------
-
-
+---
 
 Use the attached Newton Edge logo as the primary brand identity.
 
-
-
 Use the attached Foundational Class flyer as an important visual reference and brand anchor.
-
-
 
 Use the attached website UI/UX references ONLY as inspiration for:
 
@@ -102,33 +80,21 @@ Use the attached website UI/UX references ONLY as inspiration for:
 
 - visual storytelling
 
-
-
 DO NOT copy the reference websites.
 
 DO NOT reproduce their branding, wording, colors, illustrations, or layouts exactly.
 
-
-
 The Newton Edge website must have its own visual identity.
-
-
 
 The flyer and website must clearly feel like the same campaign.
 
-
-
---------------------------------------------------
+---
 
 2. VISUAL DIRECTION
 
---------------------------------------------------
-
-
+---
 
 Primary visual language:
-
-
 
 - deep navy / academic blue
 
@@ -152,19 +118,11 @@ Primary visual language:
 
 - strong hierarchy
 
-
-
 The existing Newton Edge logo establishes the navy-and-gold identity.
-
-
 
 Do not overuse gold.
 
-
-
 Gold should function primarily as an accent, highlight, reward/achievement color, and brand detail.
-
-
 
 Avoid:
 
@@ -192,23 +150,15 @@ Avoid:
 
 - visual clutter
 
-
-
 The website should feel like a premium Nigerian EdTech brand.
 
-
-
---------------------------------------------------
+---
 
 3. OVERALL UX PRINCIPLE
 
---------------------------------------------------
-
-
+---
 
 Build the website around this progression:
-
-
 
 DISCOVER
 
@@ -224,8 +174,6 @@ DISCOVER
 
 → PRACTICE
 
-
-
 The visitor should always know:
 
 1. where they are
@@ -240,39 +188,23 @@ The visitor should always know:
 
 6. what action they should take next
 
-
-
 Do not overwhelm users.
-
-
 
 Every section must have a clear purpose.
 
-
-
---------------------------------------------------
+---
 
 4. MOBILE-FIRST REQUIREMENT
 
---------------------------------------------------
-
-
+---
 
 THIS IS CRITICAL.
 
-
-
 The majority of users are expected to access the platform through smartphones.
-
-
 
 Design mobile-first.
 
-
-
 Do NOT design desktop first and simply shrink it.
-
-
 
 Every:
 
@@ -298,15 +230,9 @@ Every:
 
 - navigation element
 
-
-
 must be fully responsive.
 
-
-
 Mobile layouts should feel intentionally designed, not compressed desktop layouts.
-
-
 
 Requirements:
 
@@ -332,23 +258,15 @@ Requirements:
 
 - no broken layouts
 
-
-
 The desktop experience should scale elegantly from the mobile design.
 
-
-
---------------------------------------------------
+---
 
 5. WEBSITE STRUCTURE
 
---------------------------------------------------
-
-
+---
 
 Create the following core experiences:
-
-
 
 PUBLIC WEBSITE:
 
@@ -360,51 +278,31 @@ PUBLIC WEBSITE:
 
 4. Practice / Reward Experience
 
-
-
 STUDENT EXPERIENCE:
 
 5. Student Dashboard
-
-
 
 ADMIN / MANAGEMENT:
 
 6. Basic admin management interface for monitoring registrations, students, submissions and practice rewards.
 
-
-
 The public website should be accessible without logging in.
-
-
 
 Student-specific content should require authentication.
 
-
-
---------------------------------------------------
+---
 
 6. LANDING PAGE
 
---------------------------------------------------
-
-
+---
 
 The landing page must feel like a premium campaign website.
 
-
-
 Do NOT make it look like a generic school website.
-
-
 
 Navigation:
 
-
-
 Logo on the left.
-
-
 
 Desktop:
 
@@ -420,39 +318,25 @@ Desktop:
 
 - Register
 
-
-
 Mobile:
 
 Use a clean hamburger menu.
 
-
-
 Keep the navigation minimal.
-
-
 
 Primary CTA:
 
 REGISTER FOR FOUNDATIONAL CLASS
 
-
-
---------------------------------------------------
+---
 
 7. HERO SECTION
 
---------------------------------------------------
-
-
+---
 
 The hero must be visually strong.
 
-
-
 Use a professionally art-directed Nigerian/African UTME student visual.
-
-
 
 The photography should communicate:
 
@@ -469,8 +353,6 @@ The photography should communicate:
 - confidence
 
 - modern student life
-
-
 
 Possible visual details:
 
@@ -490,113 +372,63 @@ Possible visual details:
 
 - focused student expression
 
-
-
 Do NOT simply create a generic stock photograph of “student studying”.
-
-
 
 The hero photography should feel like a premium education campaign.
 
-
-
 Use the attached visual references as direction for photography quality and composition.
-
-
 
 Hero copy:
 
-
-
 FOUNDATIONAL CLASS
-
-
 
 FOR UTME CANDIDATES
 
-
-
 Headline direction:
-
-
 
 BUILD THE FOUNDATION.
 
 GET THE EDGE.
 
-
-
 Supporting copy:
 
-
-
 A structured preparation programme designed to strengthen the fundamentals students need before tackling JAMB-level questions.
-
-
 
 Primary CTA:
 
 REGISTER FOR THE CLASS
 
-
-
 Secondary CTA:
 
 EXPLORE THE PROGRAMME
 
-
-
 Keep the hero concise.
-
-
 
 Do not overcrowd it.
 
-
-
---------------------------------------------------
+---
 
 8. WHY FOUNDATIONAL SECTION
 
---------------------------------------------------
-
-
+---
 
 This section is extremely important.
 
-
-
 The actual Foundational Class flyer must appear prominently in this section.
-
-
 
 Do NOT create a “SEE THE FLYER” button.
 
-
-
 The flyer itself should simply be presented beautifully as part of the composition and may be clickable to enlarge.
-
-
 
 The purpose of this section is to explain WHY the programme exists.
 
-
-
 Section heading:
-
-
 
 WHY FOUNDATIONAL?
 
-
-
 Core idea:
 
-
-
 Many students struggle with JAMB-level questions not necessarily because they cannot study, but because their underlying foundations are weak.
-
-
 
 They may struggle with:
 
@@ -614,23 +446,13 @@ They may struggle with:
 
 - speed
 
-
-
 The Foundational Class addresses those gaps before students are expected to tackle harder JAMB-level problems.
-
-
 
 Use concise copy.
 
-
-
 Do not create a giant paragraph.
 
-
-
 Create a visual progression:
-
-
 
 FOUNDATION
 
@@ -642,65 +464,41 @@ FOUNDATION
 
 → JAMB
 
-
-
 The flyer should visually connect this section to the campaign.
 
-
-
---------------------------------------------------
+---
 
 9. WHAT STUDENTS WILL BUILD
 
---------------------------------------------------
-
-
+---
 
 Create a clean section showing the core programme areas.
 
-
-
 Use exactly these five pillars:
-
-
 
 01
 
 BASIC CALCULATIONS
 
-
-
 02
 
 CORE CONCEPTS
-
-
 
 03
 
 FORMULA MASTERY
 
-
-
 04
 
 SPEED & SHORTCUTS
-
-
 
 05
 
 JAMB APPLICATION
 
-
-
 Do not turn these into overly decorative cards.
 
-
-
 The design should feel editorial and structured.
-
-
 
 Each item can have:
 
@@ -712,23 +510,15 @@ Each item can have:
 
 - subtle visual element
 
-
-
---------------------------------------------------
+---
 
 10. LEARNING JOURNEY
 
---------------------------------------------------
-
-
+---
 
 Create a visual learning progression showing how the programme develops the student.
 
-
-
 Example:
-
-
 
 START WITH THE BASICS
 
@@ -752,27 +542,17 @@ BUILD SPEED
 
 APPLY TO JAMB QUESTIONS
 
-
-
 Make this visually engaging.
-
-
 
 Do not use excessive arrows or childish diagrams.
 
-
-
---------------------------------------------------
+---
 
 11. MOCK EXAMS
 
---------------------------------------------------
-
-
+---
 
 Include a section communicating that students will have MOCK EXAMS during the programme.
-
-
 
 The purpose:
 
@@ -786,115 +566,69 @@ The purpose:
 
 - preparation under pressure
 
-
-
 Do not describe this as a “midterm assessment”.
 
-
-
 There is NO midterm assessment.
-
-
 
 Use:
 
 MOCK EXAMS
 
-
-
 Do not invent a number of mock exams unless explicitly supplied by the administrator.
 
-
-
---------------------------------------------------
+---
 
 12. SCHOLARSHIP / REWARD SECTION
 
---------------------------------------------------
-
-
+---
 
 The previous ₦20,000 cash prize has been REMOVED.
 
-
-
 Do NOT mention a ₦20,000 cash prize anywhere.
-
-
 
 The programme may offer Premium Class Scholarships to top-performing students from the mock exams.
 
-
-
 Keep the messaging concise.
-
-
 
 Example direction:
 
-
-
 PERFORM. STAND OUT. MOVE FORWARD.
 
-
-
 Top-performing students from the mock exams may earn access to a Premium Class Scholarship.
-
-
 
 Add:
 
 Terms & Conditions Apply.
 
-
-
 Do not invent scholarship rules that have not been provided.
 
-
-
---------------------------------------------------
+---
 
 13. STUDENT SUCCESS STORIES
 
---------------------------------------------------
-
-
+---
 
 Create a premium social-proof section.
 
-
-
 Heading:
-
-
 
 REAL STUDENTS.
 
 REAL RESULTS.
 
-
-
 Use the following three students:
-
-
 
 1. Kolawole Samuel
 
 UTME SCORE: 309
 
-
-
 2. Onabanjo Toluwanimi
 
 UTME SCORE: 318
 
-
-
 3. Jonathan Faith Onome
 
 UTME SCORE: 314
-
-
 
 We have:
 
@@ -904,11 +638,7 @@ We have:
 
 - their actual UTME result images
 
-
-
 These assets will be supplied.
-
-
 
 DO NOT generate fake student photographs.
 
@@ -916,19 +646,11 @@ DO NOT generate fake result screenshots.
 
 DO NOT fabricate testimonials.
 
-
-
 Use the actual supplied assets.
-
-
 
 Design direction:
 
-
-
 Make one student a featured story and the other two supporting stories.
-
-
 
 Show:
 
@@ -944,49 +666,29 @@ Show:
 
 - READ FULL STORY
 
-
-
 The result screenshot should open in a clean modal/lightbox.
-
-
 
 Do not display unnecessary personal information from result screenshots if it is not needed.
 
-
-
 If result screenshots contain sensitive identifiers such as registration numbers, allow the image to be cropped/redacted before publishing.
 
-
-
---------------------------------------------------
+---
 
 14. TESTIMONIAL CONTENT
 
---------------------------------------------------
-
-
+---
 
 Preserve the authenticity of the testimonials.
 
-
-
 Do not rewrite them into generic marketing language.
-
-
 
 Short excerpts may be used on the landing page.
 
-
-
 The complete testimonial can appear in a modal or dedicated story view.
-
-
 
 Kolawole Samuel:
 
 309
-
-
 
 His story emphasizes:
 
@@ -1006,13 +708,9 @@ His story emphasizes:
 
 - confidence
 
-
-
 Onabanjo Toluwanimi:
 
 318
-
-
 
 Her story emphasizes:
 
@@ -1028,13 +726,9 @@ Her story emphasizes:
 
 - simplifying subjects
 
-
-
 Jonathan Faith Onome:
 
 314
-
-
 
 Her story emphasizes:
 
@@ -1052,99 +746,59 @@ Her story emphasizes:
 
 - seeing related concepts during the main exam
 
-
-
 Do not invent anything beyond the supplied testimonials.
 
-
-
---------------------------------------------------
+---
 
 15. HOW IT WORKS
 
---------------------------------------------------
-
-
+---
 
 Create a simple 3–4 step explanation.
 
-
-
 Example:
-
-
 
 01
 
 REGISTER
 
-
-
 Complete the Newton Edge registration form.
-
-
 
 02
 
 GET ACCESS
 
-
-
 Once registration is successfully completed, class access is immediately available.
-
-
 
 03
 
 JOIN YOUR CLASS
 
-
-
 Choose WhatsApp or Telegram and join the class.
-
-
 
 04
 
 START PREPARING
 
-
-
 Begin your Foundational Class journey.
-
-
 
 Important:
 
-
-
 REGISTRATION IS FULLY AUTOMATED.
-
-
 
 There is NO manual admin approval required for normal registration.
 
-
-
 Do NOT create a “pending approval” experience.
 
-
-
---------------------------------------------------
+---
 
 16. REGISTRATION SYSTEM
 
---------------------------------------------------
-
-
+---
 
 Registration must be automated.
 
-
-
 Student flow:
-
-
 
 Landing Page
 
@@ -1160,11 +814,7 @@ Landing Page
 
 → Class Access Available Immediately
 
-
-
 Do not require an administrator to manually approve every registration.
-
-
 
 Implement:
 
@@ -1182,37 +832,23 @@ Implement:
 
 - unique registration ID
 
-
-
---------------------------------------------------
+---
 
 17. REGISTRATION FORM
 
---------------------------------------------------
-
-
+---
 
 LOCK THESE QUESTIONS.
 
-
-
 Do NOT invent additional registration questions.
-
-
 
 Do NOT remove these questions.
 
-
-
 Organize them into these sections:
-
-
 
 SECTION 1:
 
 ABOUT YOU
-
-
 
 1. Full Name *
 
@@ -1222,13 +858,9 @@ ABOUT YOU
 
 4. Telegram Username (optional)
 
-
-
 SECTION 2:
 
 YOUR UTME JOURNEY
-
-
 
 5. What year are you preparing for? *
 
@@ -1240,11 +872,7 @@ YOUR UTME JOURNEY
 
 9. Which subjects do you want the most help with? *
 
-
-
 For Question 8 use selectable options:
-
-
 
 - Calculations
 
@@ -1264,31 +892,19 @@ For Question 8 use selectable options:
 
 - None in particular
 
-
-
 SECTION 3:
 
 YOUR GOALS
 
-
-
 10. What would you most like to improve before UTME?
 
-
-
 This is optional.
-
-
 
 SECTION 4:
 
 HOW YOU FOUND US
 
-
-
 11. How did you hear about Newton Edge? *
-
-
 
 Options:
 
@@ -1306,8 +922,6 @@ Options:
 
 - Other
 
-
-
 Do not ask unnecessary personal information such as:
 
 - home address
@@ -1322,35 +936,21 @@ Do not ask unnecessary personal information such as:
 
 - unnecessary school details
 
-
-
 Keep the registration experience short and easy.
 
-
-
---------------------------------------------------
+---
 
 18. REGISTRATION UI
 
---------------------------------------------------
-
-
+---
 
 The registration page should feel like part of the Newton Edge product.
 
-
-
 Do NOT make it look like a generic Google Form.
-
-
 
 Use a multi-step form.
 
-
-
 Example:
-
-
 
 01 ABOUT YOU
 
@@ -1360,11 +960,7 @@ Example:
 
 04 HOW YOU FOUND US
 
-
-
 Show a subtle progress indicator.
-
-
 
 Allow:
 
@@ -1376,165 +972,93 @@ Allow:
 
 - clear error messages
 
-
-
 On completion:
-
-
 
 SHOW:
 
-
-
 REGISTRATION SUCCESSFUL
 
-
-
 Welcome to Newton Edge.
-
-
 
 Your Registration ID:
 
 [GENERATED ID]
 
-
-
 Your class access is now available.
-
-
 
 CTA:
 
 GO TO MY DASHBOARD
 
-
-
---------------------------------------------------
+---
 
 19. STUDENT DASHBOARD
 
---------------------------------------------------
-
-
+---
 
 The dashboard should feel like a real EdTech platform.
 
-
-
 Top:
-
-
 
 Newton Edge logo
 
-
-
 Welcome message:
-
-
 
 WELCOME, [STUDENT NAME]
 
-
-
 Then a Foundational Class status card:
 
-
-
 FOUNDATIONAL CLASS
-
-
 
 Registration:
 
 CONFIRMED
 
-
-
 Class Access:
 
 AVAILABLE
 
-
-
 Then:
-
-
 
 YOUR CLASSROOM
 
-
-
 [JOIN WHATSAPP]
-
-
 
 [JOIN TELEGRAM]
 
-
-
 These links must be immediately accessible after successful registration.
-
-
 
 Do NOT lock the class links behind flyer sharing.
 
-
-
---------------------------------------------------
+---
 
 20. FLYER SHARING REWARD
 
---------------------------------------------------
-
-
+---
 
 Flyer sharing is OPTIONAL.
 
-
-
 This is very important.
-
-
 
 Students do NOT need to share the flyer to access WhatsApp or Telegram.
 
-
-
 Class access is already available after registration.
-
-
 
 Sharing is an optional value exchange.
 
-
-
 Create a dashboard section:
-
-
 
 SHARE & UNLOCK
 
-
-
 Supporting message:
 
-
-
 Share the official Newton Edge Foundational Class flyer and unlock exclusive mini JAMB practice material.
-
-
 
 CTA:
 
 DOWNLOAD FLYER
 
-
-
 Then:
-
-
 
 SHARE FLYER
 
@@ -1546,23 +1070,15 @@ SUBMIT PROOF
 
 GET PRACTICE ACCESS
 
-
-
 The purpose is to encourage organic promotion while giving the student something genuinely useful in return.
 
-
-
---------------------------------------------------
+---
 
 21. SHARING VERIFICATION
 
---------------------------------------------------
-
-
+---
 
 The system should support automated verification of the submitted sharing screenshot.
-
-
 
 Student:
 
@@ -1578,11 +1094,7 @@ Student:
 
 6. if criteria are satisfied, practice reward unlocks automatically
 
-
-
 Do NOT make class access dependent on this.
-
-
 
 The verification system should be designed to detect evidence such as:
 
@@ -1594,63 +1106,37 @@ The verification system should be designed to detect evidence such as:
 
 - date/time context where available
 
-
-
 Use OCR/image analysis where available.
-
-
 
 If the system cannot confidently verify something, create a clear status such as:
 
 “Verification in progress”
 
-
-
 Do not falsely claim that image recognition is perfect.
-
-
 
 Provide an admin monitoring interface for exceptional cases, but do not require manual approval for normal registrations.
 
-
-
---------------------------------------------------
+---
 
 22. MINI JAMB PRACTICE
 
---------------------------------------------------
-
-
+---
 
 The sharing reward should unlock an interactive mini practice experience.
 
-
-
 Do not make it only a PDF download.
-
-
 
 Create:
 
-
-
 EDGE PRACTICE
 
-
-
 MINI JAMB PRACTICE
-
-
 
 Show:
 
 Question X of Y
 
-
-
 Question
-
-
 
 A
 
@@ -1660,11 +1146,7 @@ C
 
 D
 
-
-
 SUBMIT ANSWER
-
-
 
 After answering:
 
@@ -1674,39 +1156,23 @@ After answering:
 
 - allow next question
 
-
-
 Make it mobile-first.
-
-
 
 The practice content should be manageable from the admin interface.
 
-
-
 Do NOT allow Lovable to invent a giant question bank.
-
-
 
 Use placeholder/sample content only until real questions are supplied.
 
-
-
---------------------------------------------------
+---
 
 23. ADMIN INTERFACE
 
---------------------------------------------------
-
-
+---
 
 Create a secure admin area.
 
-
-
 Admin should be able to view:
-
-
 
 - total registrations
 
@@ -1730,8 +1196,6 @@ Admin should be able to view:
 
 - registration ID
 
-
-
 Also manage:
 
 - student accounts
@@ -1750,35 +1214,21 @@ Also manage:
 
 - reward unlocks
 
-
-
 Admin should NOT need to manually approve normal registrations.
-
-
 
 The admin area is for management, monitoring and content control.
 
-
-
---------------------------------------------------
+---
 
 24. DATABASE / BACKEND
 
---------------------------------------------------
-
-
+---
 
 Use a proper backend architecture suitable for Lovable.
 
-
-
 Prefer Supabase if available.
 
-
-
 Create appropriate tables/entities for:
-
-
 
 - users
 
@@ -1798,35 +1248,21 @@ Create appropriate tables/entities for:
 
 - admin_users
 
-
-
 Use secure access rules.
-
-
 
 Students must only be able to access their own private information.
 
-
-
 Admin functionality must be protected.
-
-
 
 Do not expose private student information publicly.
 
-
-
---------------------------------------------------
+---
 
 25. PERFORMANCE
 
---------------------------------------------------
-
-
+---
 
 Optimize for mobile networks.
-
-
 
 Important because many users may have:
 
@@ -1835,8 +1271,6 @@ Important because many users may have:
 - limited data
 
 - lower-end Android devices
-
-
 
 Use:
 
@@ -1854,23 +1288,15 @@ Use:
 
 - fast initial load
 
-
-
 Do not make the site heavy just for visual effects.
 
-
-
---------------------------------------------------
+---
 
 26. MOTION AND INTERACTION
 
---------------------------------------------------
-
-
+---
 
 Use subtle premium motion.
-
-
 
 Examples:
 
@@ -1888,8 +1314,6 @@ Examples:
 
 - card interaction
 
-
-
 Avoid:
 
 - bouncing everything
@@ -1902,31 +1326,19 @@ Avoid:
 
 - distracting transitions
 
-
-
 Motion should make the site feel polished.
 
-
-
---------------------------------------------------
+---
 
 27. IMAGERY
 
---------------------------------------------------
-
-
+---
 
 Use professionally art-directed educational imagery.
 
-
-
 The visual world should represent serious Nigerian/African students.
 
-
-
 Avoid generic stock photography.
-
-
 
 Hero imagery should communicate:
 
@@ -1942,31 +1354,19 @@ Hero imagery should communicate:
 
 - confidence
 
-
-
 Other imagery can be used sparingly to break up sections.
-
-
 
 Do not put an image in every section.
 
-
-
 Images should have a purpose.
 
-
-
---------------------------------------------------
+---
 
 28. FLYER INTEGRATION
 
---------------------------------------------------
-
-
+---
 
 The actual Foundational Class flyer should appear on the website in a visually intentional way.
-
-
 
 It should:
 
@@ -1980,35 +1380,21 @@ It should:
 
 - visually connect the website to the promotional campaign
 
-
-
 Do NOT create a “SEE THE FLYER” CTA.
-
-
 
 Do NOT make the website look like the flyer was simply pasted onto it.
 
-
-
 Treat the flyer as an editorial visual asset.
 
-
-
---------------------------------------------------
+---
 
 29. FAQ
 
---------------------------------------------------
-
-
+---
 
 Create a concise FAQ section.
 
-
-
 Only include questions that are genuinely useful.
-
-
 
 Possible topics:
 
@@ -2028,101 +1414,59 @@ Possible topics:
 
 - What happens after the Foundational Class?
 
-
-
 Do not invent programme policies that have not been supplied.
 
-
-
---------------------------------------------------
+---
 
 30. FINAL CTA
 
---------------------------------------------------
-
-
+---
 
 End the landing page with a strong, clean CTA.
 
-
-
 Example direction:
-
-
 
 READY TO BUILD YOUR FOUNDATION?
 
-
-
 Start your preparation with Newton Edge.
-
-
 
 BUTTON:
 
 REGISTER FOR FOUNDATIONAL CLASS
 
-
-
 Keep it visually powerful but not cluttered.
 
-
-
---------------------------------------------------
+---
 
 31. FOOTER
 
---------------------------------------------------
-
-
+---
 
 Include:
 
-
-
 Newton Edge logo
-
-
 
 Short brand statement.
 
-
-
 Navigation.
-
-
 
 Foundational Class.
 
-
-
 Student Results.
-
-
 
 Contact/social links where supplied.
 
-
-
 Copyright.
-
-
 
 Do not invent contact details.
 
-
-
---------------------------------------------------
+---
 
 32. DESIGN QUALITY CONTROL
 
---------------------------------------------------
-
-
+---
 
 Before considering the project complete, check:
-
-
 
 - Does it look like a premium EdTech product?
 
@@ -2170,15 +1514,11 @@ Before considering the project complete, check:
 
 - Does every section have a reason to exist?
 
-
-
---------------------------------------------------
+---
 
 33. IMPORTANT CONTENT RULE
 
---------------------------------------------------
-
-
+---
 
 DO NOT invent:
 
@@ -2206,43 +1546,31 @@ DO NOT invent:
 
 - fake programme features
 
-
-
 If information has not been supplied, use a clearly marked placeholder or ask for the information rather than inventing it.
 
-
-
---------------------------------------------------
+---
 
 34. FINAL CREATIVE DIRECTION
 
---------------------------------------------------
-
-
+---
 
 The final Newton Edge experience should feel like:
 
-
-
 A premium Nigerian EdTech campaign
 
-+
+-
 
 a serious UTME preparation platform
 
-+
+-
 
 a modern student product
 
-+
+-
 
 real evidence of student success.
 
-
-
 It should NOT feel like:
-
-
 
 a generic school website
 
@@ -2250,11 +1578,7 @@ or
 
 a template with education photos.
 
-
-
 The website should have visual confidence.
-
-
 
 Use strong typography.
 
@@ -2274,27 +1598,15 @@ Keep the interface clean.
 
 Keep the experience simple.
 
-
-
 The student should never feel lost.
-
-
 
 The student should never feel overwhelmed.
 
-
-
 The student should never have to wonder what to click next.
-
-
 
 Most importantly:
 
-
-
 MAKE THE WEBSITE FEEL LIKE NEWTON EDGE, NOT LIKE A WEBSITE TEMPLATE.
-
-
 
 Build the complete responsive experience and make sure all major interactions work.
 

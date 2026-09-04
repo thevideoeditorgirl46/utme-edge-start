@@ -17,17 +17,20 @@ export type StudentQuestion = {
   attempt: { selected: string; isCorrect: boolean } | null;
 };
 
-type Db = { from: (table: string) => any };
+type Db = {
+  from: (table: string) => ReturnType<import("@supabase/supabase-js").SupabaseClient["from"]>;
+};
 
-/** Authoritative access check: approved share points must meet the configured threshold. */
+/** Authoritative access check: approved share points must meet the configured threshold or reward unlock exists. */
 async function accessState(supabase: Db, userId: string) {
-  const [rows, settings] = await Promise.all([
+  const [rows, settings, unlock] = await Promise.all([
     supabase
       .from("share_verifications")
       .select("claimed_points")
       .eq("student_id", userId)
       .eq("status", "approved"),
     supabase.from("verification_settings").select("required_points").eq("id", 1).maybeSingle(),
+    supabase.from("reward_unlocks").select("user_id").eq("user_id", userId).maybeSingle(),
   ]);
   const verifiedPoints = ((rows.data ?? []) as { claimed_points: number }[]).reduce(
     (sum, r) => sum + (r.claimed_points ?? 0),
@@ -35,7 +38,8 @@ async function accessState(supabase: Db, userId: string) {
   );
   const requiredPoints =
     (settings.data as { required_points?: number } | null)?.required_points ?? 100;
-  return { unlocked: verifiedPoints >= requiredPoints, verifiedPoints, requiredPoints };
+  const unlocked = Boolean(unlock.data) || verifiedPoints >= requiredPoints;
+  return { unlocked, verifiedPoints, requiredPoints };
 }
 
 async function requireAccess(supabase: Db, userId: string) {
@@ -48,6 +52,128 @@ async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
 }
+
+export type AccessStatus = "APPROVED" | "PENDING" | "DENIED" | "NOT_FOUND" | "ERROR";
+
+export type VerifyNETAccessResult = {
+  status: AccessStatus;
+  message: string;
+  studentName?: string;
+  registrationId?: string;
+  verifiedPoints: number;
+  requiredPoints: number;
+  pendingPoints: number;
+};
+
+export const verifyNETAccess = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input?: { netId?: string }) => ({
+    netId: input?.netId ? input.netId.trim().toUpperCase() : undefined,
+  }))
+  .handler(async ({ data, context }): Promise<VerifyNETAccessResult> => {
+    const { supabase, userId } = context;
+    const db = await admin();
+
+    try {
+      let targetUserId = userId;
+      let regId: string | null = null;
+      let fullName: string | null = null;
+
+      if (data?.netId) {
+        const profileRes = await db
+          .from("profiles")
+          .select("id, registration_id, full_name")
+          .ilike("registration_id", data.netId)
+          .maybeSingle();
+
+        if (!profileRes.data) {
+          return {
+            status: "NOT_FOUND",
+            message: `No registration found matching "${data.netId}". Please check your NET ID on your dashboard.`,
+            verifiedPoints: 0,
+            requiredPoints: 100,
+            pendingPoints: 0,
+          };
+        }
+        targetUserId = profileRes.data.id;
+        regId = profileRes.data.registration_id;
+        fullName = profileRes.data.full_name;
+      } else {
+        const myProfile = await supabase
+          .from("profiles")
+          .select("registration_id, full_name")
+          .eq("id", userId)
+          .maybeSingle();
+        regId = myProfile.data?.registration_id ?? null;
+        fullName = myProfile.data?.full_name ?? null;
+      }
+
+      const [rows, settings, unlock] = await Promise.all([
+        db
+          .from("share_verifications")
+          .select("claimed_points, status")
+          .eq("student_id", targetUserId),
+        db.from("verification_settings").select("required_points").eq("id", 1).maybeSingle(),
+        db.from("reward_unlocks").select("user_id").eq("user_id", targetUserId).maybeSingle(),
+      ]);
+
+      const submissions = (rows.data ?? []) as { claimed_points: number; status: string }[];
+      const verifiedPoints = submissions
+        .filter((r) => r.status === "approved")
+        .reduce((sum, r) => sum + (r.claimed_points ?? 0), 0);
+      const pendingPoints = submissions
+        .filter((r) => r.status === "pending" || r.status === "needs_review")
+        .reduce((sum, r) => sum + (r.claimed_points ?? 0), 0);
+      const requiredPoints =
+        (settings.data as { required_points?: number } | null)?.required_points ?? 100;
+
+      const isUnlocked = Boolean(unlock.data) || verifiedPoints >= requiredPoints;
+
+      if (isUnlocked) {
+        return {
+          status: "APPROVED",
+          message: "Access verified. Welcome to Edge Practice!",
+          studentName: fullName ?? undefined,
+          registrationId: regId ?? undefined,
+          verifiedPoints,
+          requiredPoints,
+          pendingPoints,
+        };
+      }
+
+      if (pendingPoints > 0) {
+        return {
+          status: "PENDING",
+          message: `Your flyer share proof (${pendingPoints} points) is currently awaiting verification. Once verified, Edge Practice will unlock automatically.`,
+          studentName: fullName ?? undefined,
+          registrationId: regId ?? undefined,
+          verifiedPoints,
+          requiredPoints,
+          pendingPoints,
+        };
+      }
+
+      return {
+        status: "DENIED",
+        message:
+          "Edge Practice access requires completing the Foundational Class share & unlock reward (100 verified points).",
+        studentName: fullName ?? undefined,
+        registrationId: regId ?? undefined,
+        verifiedPoints,
+        requiredPoints,
+        pendingPoints,
+      };
+    } catch {
+      return {
+        status: "ERROR",
+        message:
+          "Unable to verify access at this moment. Please check your connection and try again.",
+        verifiedPoints: 0,
+        requiredPoints: 100,
+        pendingPoints: 0,
+      };
+    }
+  });
 
 export const getPracticeAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -221,21 +347,33 @@ export const getQuestionPage = createServerFn({ method: "GET" })
 
     const total = rows.count ?? 0;
 
-    const questions: StudentQuestion[] = (rows.data ?? []).map((q: any, i: number) => ({
-      id: q.id,
-      number: from + i + 1,
-      prompt: q.prompt,
-      options: [
-        { key: "A" as const, text: q.option_a },
-        { key: "B" as const, text: q.option_b },
-        { key: "C" as const, text: q.option_c },
-        { key: "D" as const, text: q.option_d },
-      ],
-      imageUrl: q.image_url ?? null,
-      bookmarked: bookmarked.has(q.id),
-      note: noteBy.get(q.id) ?? "",
-      attempt: attemptBy.get(q.id) ?? null,
-    }));
+    type PageQuestionRow = {
+      id: string;
+      prompt: string;
+      option_a: string;
+      option_b: string;
+      option_c: string;
+      option_d: string;
+      image_url: string | null;
+    };
+
+    const questions: StudentQuestion[] = ((rows.data as unknown as PageQuestionRow[]) ?? []).map(
+      (q, i) => ({
+        id: q.id,
+        number: from + i + 1,
+        prompt: q.prompt,
+        options: [
+          { key: "A" as const, text: q.option_a },
+          { key: "B" as const, text: q.option_b },
+          { key: "C" as const, text: q.option_c },
+          { key: "D" as const, text: q.option_d },
+        ],
+        imageUrl: q.image_url ?? null,
+        bookmarked: bookmarked.has(q.id),
+        note: noteBy.get(q.id) ?? "",
+        attempt: attemptBy.get(q.id) ?? null,
+      }),
+    );
 
     return {
       subject: { slug: subject.data.slug, name: subject.data.name },
@@ -383,7 +521,10 @@ export const getSavedQuestions = createServerFn({ method: "GET" })
         .eq("user_id", context.userId)
         .order("created_at", { ascending: false })
         .limit(100),
-      context.supabase.from("question_notes").select("question_id, body").eq("user_id", context.userId),
+      context.supabase
+        .from("question_notes")
+        .select("question_id, body")
+        .eq("user_id", context.userId),
     ]);
 
     const ids = ((bookmarks.data ?? []) as { question_id: string }[]).map((b) => b.question_id);
@@ -395,11 +536,27 @@ export const getSavedQuestions = createServerFn({ method: "GET" })
       .eq("status", "published")
       .in("id", ids);
 
-    const topics = await db
-      .from("practice_topics")
-      .select("id, name, slug, subject_id, practice_subjects(name, slug)");
+    type JoinedTopic = {
+      id: string;
+      name: string;
+      slug: string;
+      subject_id: string;
+      practice_subjects: { name: string; slug: string } | null;
+    };
 
-    const topicById = new Map((topics.data ?? []).map((t: any) => [t.id, t]));
+    type SavedQuestionRow = {
+      id: string;
+      prompt: string;
+      option_a: string;
+      option_b: string;
+      option_c: string;
+      option_d: string;
+      topic_id: string;
+    };
+
+    const topicById = new Map(
+      ((topics.data as unknown as JoinedTopic[]) ?? []).map((t) => [t.id, t]),
+    );
     const noteBy = new Map(
       ((notes.data ?? []) as { question_id: string; body: string }[]).map((n) => [
         n.question_id,
@@ -408,8 +565,8 @@ export const getSavedQuestions = createServerFn({ method: "GET" })
     );
 
     return {
-      items: (rows.data ?? []).map((q: any) => {
-        const t = topicById.get(q.topic_id) as any;
+      items: ((rows.data as unknown as SavedQuestionRow[]) ?? []).map((q) => {
+        const t = topicById.get(q.topic_id);
         return {
           id: q.id,
           prompt: q.prompt,
@@ -442,18 +599,33 @@ export const getMyProgress = createServerFn({ method: "GET" })
       .eq("user_id", context.userId);
 
     const rows = (attempts.data ?? []) as { topic_id: string; is_correct: boolean }[];
+    type ProgressTopic = {
+      id: string;
+      name: string;
+      subject_id: string;
+      practice_subjects: { name: string } | null;
+    };
+
     const topics = await db
       .from("practice_topics")
       .select("id, name, subject_id, practice_subjects(name)");
-    const topicById = new Map((topics.data ?? []).map((t: any) => [t.id, t]));
+    const topicById = new Map(
+      ((topics.data as unknown as ProgressTopic[]) ?? []).map((t) => [t.id, t]),
+    );
 
-    const perTopic = new Map<string, { name: string; subject: string; total: number; correct: number }>();
+    const perTopic = new Map<
+      string,
+      { name: string; subject: string; total: number; correct: number }
+    >();
     for (const r of rows) {
-      const t = topicById.get(r.topic_id) as any;
+      const t = topicById.get(r.topic_id);
       const key = r.topic_id;
-      const entry =
-        perTopic.get(key) ??
-        { name: t?.name ?? "Topic", subject: t?.practice_subjects?.name ?? "", total: 0, correct: 0 };
+      const entry = perTopic.get(key) ?? {
+        name: t?.name ?? "Topic",
+        subject: t?.practice_subjects?.name ?? "",
+        total: 0,
+        correct: 0,
+      };
       entry.total += 1;
       if (r.is_correct) entry.correct += 1;
       perTopic.set(key, entry);

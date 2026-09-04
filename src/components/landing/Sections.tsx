@@ -16,7 +16,12 @@ import {
 } from "lucide-react";
 
 import { BRAND_ASSETS } from "@/lib/brand";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -94,7 +99,10 @@ export function WhyFoundational() {
               </li>
             ))}
           </ul>
-          <Button asChild className="mt-7 h-11 bg-gold-gradient font-semibold text-accent-foreground shadow-gold hover:opacity-95">
+          <Button
+            asChild
+            className="mt-7 h-11 bg-gold-gradient font-semibold text-accent-foreground shadow-gold hover:opacity-95"
+          >
             <Link to="/register">Claim your free spot</Link>
           </Button>
         </div>
@@ -159,12 +167,36 @@ export function Pillars() {
 }
 
 const JOURNEY = [
-  { icon: UserPlus, title: "Register free", text: "Four short steps. You get an account and a registration ID instantly." },
-  { icon: MessagesSquare, title: "Join the class", text: "Enter the WhatsApp and Telegram class from your dashboard." },
-  { icon: Calculator, title: "Rebuild the basics", text: "Start with calculations and core concepts, taught from zero." },
-  { icon: Sigma, title: "Master formulas", text: "Drill formulas and shortcuts until recall becomes automatic." },
-  { icon: ClipboardList, title: "Write 3 mocks", text: "Timed, JAMB-style mock exams with breakdowns after each one." },
-  { icon: Trophy, title: "Earn recognition", text: "Top performers are celebrated and considered for scholarships." },
+  {
+    icon: UserPlus,
+    title: "Register free",
+    text: "Four short steps. You get an account and a registration ID instantly.",
+  },
+  {
+    icon: MessagesSquare,
+    title: "Join the class",
+    text: "Enter the WhatsApp and Telegram class from your dashboard.",
+  },
+  {
+    icon: Calculator,
+    title: "Rebuild the basics",
+    text: "Start with calculations and core concepts, taught from zero.",
+  },
+  {
+    icon: Sigma,
+    title: "Master formulas",
+    text: "Drill formulas and shortcuts until recall becomes automatic.",
+  },
+  {
+    icon: ClipboardList,
+    title: "Write 3 mocks",
+    text: "Timed, JAMB-style mock exams with breakdowns after each one.",
+  },
+  {
+    icon: Trophy,
+    title: "Earn recognition",
+    text: "Top performers are celebrated and considered for scholarships.",
+  },
 ];
 
 export function Journey() {
@@ -208,11 +240,26 @@ export function MockExams() {
         />
         <div className="mt-10 grid gap-4 sm:grid-cols-3">
           {[
-            { n: "Mock 1", t: "Diagnostic", d: "Find exactly where the gaps are before we go deep." },
-            { n: "Mock 2", t: "Progress check", d: "Measure improvement across all four subjects under time." },
-            { n: "Mock 3", t: "Final rehearsal", d: "Full JAMB conditions, full pressure, full feedback." },
+            {
+              n: "Mock 1",
+              t: "Diagnostic",
+              d: "Find exactly where the gaps are before we go deep.",
+            },
+            {
+              n: "Mock 2",
+              t: "Progress check",
+              d: "Measure improvement across all four subjects under time.",
+            },
+            {
+              n: "Mock 3",
+              t: "Final rehearsal",
+              d: "Full JAMB conditions, full pressure, full feedback.",
+            },
           ].map((m) => (
-            <div key={m.n} className="rounded-2xl border border-primary-foreground/15 bg-primary-foreground/5 p-5">
+            <div
+              key={m.n}
+              className="rounded-2xl border border-primary-foreground/15 bg-primary-foreground/5 p-5"
+            >
               <FileCheck2 className="size-5 text-gold" />
               <p className="mt-3 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
                 {m.n}
@@ -244,13 +291,16 @@ export function Scholarships() {
             UTME intensive programme.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-2 text-xs font-medium">
-            {["Mock exam performance", "Class participation", "Consistency", "Improvement rate"].map(
-              (c) => (
-                <span key={c} className="rounded-full border border-border bg-secondary px-3 py-1">
-                  {c}
-                </span>
-              ),
-            )}
+            {[
+              "Mock exam performance",
+              "Class participation",
+              "Consistency",
+              "Improvement rate",
+            ].map((c) => (
+              <span key={c} className="rounded-full border border-border bg-secondary px-3 py-1">
+                {c}
+              </span>
+            ))}
           </div>
         </div>
       </div>
@@ -269,9 +319,21 @@ export function HowItWorks() {
         />
         <div className="mt-10 grid gap-4 sm:grid-cols-3">
           {[
-            { icon: UserPlus, t: "Register in 4 steps", d: "About you, your UTME journey, your goals, and how you found us." },
-            { icon: MessagesSquare, t: "Learn in class", d: "Lessons, drills and Q&A run inside WhatsApp and Telegram." },
-            { icon: GraduationCap, t: "Practise & unlock", d: "Share the flyer to unlock a free mini JAMB practice set." },
+            {
+              icon: UserPlus,
+              t: "Register in 4 steps",
+              d: "About you, your UTME journey, your goals, and how you found us.",
+            },
+            {
+              icon: MessagesSquare,
+              t: "Learn in class",
+              d: "Lessons, drills and Q&A run inside WhatsApp and Telegram.",
+            },
+            {
+              icon: GraduationCap,
+              t: "Practise & unlock",
+              d: "Share the flyer to unlock a free mini JAMB practice set.",
+            },
           ].map(({ icon: Icon, t, d }) => (
             <div key={t} className="rounded-2xl border border-border bg-card p-5 shadow-card">
               <Icon className="size-5 text-accent" />
@@ -286,11 +348,26 @@ export function HowItWorks() {
 }
 
 const FAQS = [
-  { q: "Is the Foundational Class really free?", a: "Yes. Registration and participation in the Foundational Class are free. You only need a phone and data." },
-  { q: "Who is this class for?", a: "Any candidate preparing for UTME who wants to fix the basics first — whether it is your first attempt or a retake." },
-  { q: "Where do the classes hold?", a: "Inside our WhatsApp and Telegram class groups. The join links appear on your dashboard immediately after registration." },
-  { q: "Do I need a laptop?", a: "No. Everything is designed mobile-first and works on low-end Android phones." },
-  { q: "What happens after I register?", a: "You get a registration ID, immediate access to the class links, and details of the mock exam schedule in class." },
+  {
+    q: "Is the Foundational Class really free?",
+    a: "Yes. Registration and participation in the Foundational Class are free. You only need a phone and data.",
+  },
+  {
+    q: "Who is this class for?",
+    a: "Any candidate preparing for UTME who wants to fix the basics first — whether it is your first attempt or a retake.",
+  },
+  {
+    q: "Where do the classes hold?",
+    a: "Inside our WhatsApp and Telegram class groups. The join links appear on your dashboard immediately after registration.",
+  },
+  {
+    q: "Do I need a laptop?",
+    a: "No. Everything is designed mobile-first and works on low-end Android phones.",
+  },
+  {
+    q: "What happens after I register?",
+    a: "You get a registration ID, immediate access to the class links, and details of the mock exam schedule in class.",
+  },
 ];
 
 export function Faq() {

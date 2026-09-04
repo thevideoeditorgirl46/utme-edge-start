@@ -115,7 +115,11 @@ export async function automatedReview(
       flags.push("Screenshot appears edited");
       score = Math.min(score, 0.3);
     }
-    if (parsed.destination && parsed.destination !== "unclear" && parsed.destination !== shareType) {
+    if (
+      parsed.destination &&
+      parsed.destination !== "unclear" &&
+      parsed.destination !== shareType
+    ) {
       flags.push(`Destination looks like a ${parsed.destination}, not the claimed ${shareType}`);
       score = Math.min(score, 0.45);
     }

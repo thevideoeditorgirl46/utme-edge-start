@@ -159,7 +159,11 @@ function RegisterPage() {
           {step === 0 ? (
             <>
               <Field label="Full name" id="fullName">
-                <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                <Input
+                  id="fullName"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
               </Field>
               {!loading && !user ? (
                 <>
@@ -275,7 +279,11 @@ function RegisterPage() {
                 </div>
               </fieldset>
               <Field label="What would you like to improve most? (optional)" id="goal">
-                <Textarea id="goal" value={improvementGoal} onChange={(e) => setGoal(e.target.value)} />
+                <Textarea
+                  id="goal"
+                  value={improvementGoal}
+                  onChange={(e) => setGoal(e.target.value)}
+                />
               </Field>
             </>
           ) : null}
@@ -321,15 +329,7 @@ function RegisterPage() {
   );
 }
 
-function Field({
-  label,
-  id,
-  children,
-}: {
-  label: string;
-  id: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
@@ -338,15 +338,7 @@ function Field({
   );
 }
 
-function Chip({
-  label,
-  active,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
+function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button
       type="button"

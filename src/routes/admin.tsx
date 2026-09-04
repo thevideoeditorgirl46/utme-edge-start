@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { QuestionBankManager } from "@/components/admin/QuestionBankManager";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
 import { Button } from "@/components/ui/button";
@@ -116,6 +117,7 @@ function AdminPage() {
           <Tabs defaultValue="overview" className="mt-6">
             <TabsList className="flex-wrap">
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="questions">Question bank</TabsTrigger>
               <TabsTrigger value="queue">Verification queue</TabsTrigger>
               <TabsTrigger value="students">Students</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -130,6 +132,10 @@ function AdminPage() {
               <Metric label="Pending submissions" value={data.overview.pendingSubmissions} />
               <Metric label="Rejected submissions" value={data.overview.rejectedSubmissions} />
               <Metric label="Flagged submissions" value={data.overview.flaggedSubmissions} />
+            </TabsContent>
+
+            <TabsContent value="questions" className="mt-6">
+              <QuestionBankManager />
             </TabsContent>
 
             <TabsContent value="queue" className="mt-6">
@@ -185,7 +191,9 @@ function AdminPage() {
                           Automated: {q.automated_recommendation ?? "—"} (confidence{" "}
                           {q.automated_score ?? 0}) · method {q.verification_method} · fraud score{" "}
                           {q.fraud_score}
-                          {q.duplicateOf > 0 ? ` · ${q.duplicateOf} identical image(s) on file` : ""}
+                          {q.duplicateOf > 0
+                            ? ` · ${q.duplicateOf} identical image(s) on file`
+                            : ""}
                         </p>
                         {q.fraud_flags.length ? (
                           <ul className="mt-2 list-disc pl-5 text-xs text-muted-foreground">
@@ -200,9 +208,7 @@ function AdminPage() {
                             placeholder="Rejection reason"
                             className="h-9 max-w-xs"
                             value={reasons[q.id] ?? ""}
-                            onChange={(e) =>
-                              setReasons((r) => ({ ...r, [q.id]: e.target.value }))
-                            }
+                            onChange={(e) => setReasons((r) => ({ ...r, [q.id]: e.target.value }))}
                           />
                           <Button
                             size="sm"

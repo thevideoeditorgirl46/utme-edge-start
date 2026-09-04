@@ -57,7 +57,8 @@ export type ShareCheck = { verdict: "approved" | "pending"; note: string };
  */
 export async function verifyShareScreenshot(dataUrl: string): Promise<ShareCheck> {
   const apiKey = process.env["LOVABLE_API_KEY"];
-  if (!apiKey) return { verdict: "pending", note: "Automatic check unavailable — sent for review." };
+  if (!apiKey)
+    return { verdict: "pending", note: "Automatic check unavailable — sent for review." };
 
   try {
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -91,9 +92,14 @@ export async function verifyShareScreenshot(dataUrl: string): Promise<ShareCheck
     const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const raw = json.choices?.[0]?.message?.content ?? "";
     const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) return { verdict: "pending", note: "Could not read the screenshot — sent for review." };
+    if (!match)
+      return { verdict: "pending", note: "Could not read the screenshot — sent for review." };
 
-    const parsed = JSON.parse(match[0]) as { shared?: boolean; confidence?: number; reason?: string };
+    const parsed = JSON.parse(match[0]) as {
+      shared?: boolean;
+      confidence?: number;
+      reason?: string;
+    };
     if (parsed.shared === true && (parsed.confidence ?? 0) >= 0.7) {
       return { verdict: "approved", note: parsed.reason ?? "Share confirmed automatically." };
     }
