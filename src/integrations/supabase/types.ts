@@ -210,6 +210,71 @@ export type Database = {
         }
         Relationships: []
       }
+      practice_subjects: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      practice_topics: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+          subject_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          subject_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          subject_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practice_topics_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "practice_subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -242,6 +307,221 @@ export type Database = {
           whatsapp_number?: string
         }
         Relationships: []
+      }
+      question_attempts: {
+        Row: {
+          created_at: string
+          id: string
+          is_correct: boolean
+          question_id: string
+          selected_option: string
+          topic_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_correct: boolean
+          question_id: string
+          selected_option: string
+          topic_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          selected_option?: string
+          topic_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_attempts_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_attempts_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "practice_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_bookmarks: {
+        Row: {
+          created_at: string
+          id: string
+          question_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_bookmarks_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_notes: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          question_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          question_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          question_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_notes_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_revisions: {
+        Row: {
+          created_at: string
+          edited_by: string | null
+          id: string
+          question_id: string
+          revision: number
+          snapshot: Json
+        }
+        Insert: {
+          created_at?: string
+          edited_by?: string | null
+          id?: string
+          question_id: string
+          revision: number
+          snapshot: Json
+        }
+        Update: {
+          created_at?: string
+          edited_by?: string | null
+          id?: string
+          question_id?: string
+          revision?: number
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_revisions_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      questions: {
+        Row: {
+          correct_option: string
+          created_at: string
+          created_by: string | null
+          explanation: string | null
+          id: string
+          image_url: string | null
+          option_a: string
+          option_b: string
+          option_c: string
+          option_d: string
+          prompt: string
+          revision: number
+          sort_order: number
+          source: string | null
+          status: Database["public"]["Enums"]["question_status"]
+          topic_id: string
+          updated_at: string
+        }
+        Insert: {
+          correct_option: string
+          created_at?: string
+          created_by?: string | null
+          explanation?: string | null
+          id?: string
+          image_url?: string | null
+          option_a: string
+          option_b: string
+          option_c: string
+          option_d: string
+          prompt: string
+          revision?: number
+          sort_order?: number
+          source?: string | null
+          status?: Database["public"]["Enums"]["question_status"]
+          topic_id: string
+          updated_at?: string
+        }
+        Update: {
+          correct_option?: string
+          created_at?: string
+          created_by?: string | null
+          explanation?: string | null
+          id?: string
+          image_url?: string | null
+          option_a?: string
+          option_b?: string
+          option_c?: string
+          option_d?: string
+          prompt?: string
+          revision?: number
+          sort_order?: number
+          source?: string | null
+          status?: Database["public"]["Enums"]["question_status"]
+          topic_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "practice_topics"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       registrations: {
         Row: {
@@ -507,6 +787,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "student"
+      question_status:
+        | "draft"
+        | "pending"
+        | "approved"
+        | "published"
+        | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -635,6 +921,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "student"],
+      question_status: [
+        "draft",
+        "pending",
+        "approved",
+        "published",
+        "archived",
+      ],
     },
   },
 } as const
