@@ -39,6 +39,7 @@ export function QuestionCard({
   onAttemptRecorded,
   onBookmarkToggled,
   onNoteSaved,
+  onScored,
 }: QuestionCardProps) {
   const submit = useServerFn(submitAnswer);
   const toggleBm = useServerFn(toggleBookmark);
@@ -113,6 +114,14 @@ export function QuestionCard({
       setShowAnswer(true);
     }
   }, [forceReveal, submittedResult]);
+
+  // Report the score only after the answer has actually been viewed.
+  useEffect(() => {
+    if (submittedResult && (showAnswer || forceReveal) && selectedOption) {
+      onScored?.(question.id, submittedResult.isCorrect);
+    }
+  }, [submittedResult, showAnswer, forceReveal, selectedOption]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
