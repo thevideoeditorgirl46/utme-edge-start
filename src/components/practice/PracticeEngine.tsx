@@ -89,30 +89,30 @@ export function PracticeEngine(props: PracticeEngineProps) {
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey,
-    queryFn: async () => {
+    queryFn: async (): Promise<PracticePageData> => {
       try {
-        let res;
+        let res: PracticePageData;
         if (isMulti) {
-          res = await fetchMultiPage({
+          res = (await fetchMultiPage({
             data: {
               subject: subjectSlug,
               topicSlugs: (props as MultiTopicProps).topicSlugs,
               page: currentPage,
             },
-          });
+          })) as PracticePageData;
         } else {
-          res = await fetchSinglePage({
+          res = (await fetchSinglePage({
             data: {
               subject: subjectSlug,
               topic: (props as SingleTopicProps).topicSlug,
               page: currentPage,
             },
-          });
+          })) as PracticePageData;
         }
         setCachedData(cacheKey, res);
         return res;
       } catch (err) {
-        const cached = getCachedData<typeof data>(cacheKey);
+        const cached = getCachedData<PracticePageData>(cacheKey);
         if (cached) {
           toast.info("Offline mode: viewing previously loaded questions");
           return cached;
