@@ -19,7 +19,6 @@ import {
 import React, { useState } from "react";
 import { toast } from "sonner";
 
-import { AskAiModal } from "@/components/practice/AskAiModal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { MathText } from "@/components/ui/math-text";
@@ -123,10 +122,6 @@ export function PracticeAdminPreview() {
     toast.info("Simulator state reset");
   }
 
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-  const [preparedAiPrompt, setPreparedAiPrompt] = useState("");
-  const [activeAiQuestionNumber, setActiveAiQuestionNumber] = useState<number | undefined>();
-
   async function handleAskAiForQuestion(
     q: { prompt: string; options: Option[]; id: string },
     qNumber: number,
@@ -142,20 +137,18 @@ export function PracticeAdminPreview() {
       });
 
       setPreparedAiPrompt(prompt);
-      setActiveAiQuestionNumber(qNumber);
-
       try {
         await navigator.clipboard.writeText(prompt);
       } catch {
-        // Fallback in modal
+        // ignore
       }
 
-      window.open(GOOGLE_GEMINI_URL, "_blank", "noopener,noreferrer");
-      toast.success("🤖 Prompt ready! Paste into Google Gemini and click Send.", {
+      const geminiUrl = `${GOOGLE_GEMINI_URL}?prompt=${encodeURIComponent(prompt)}`;
+      window.open(geminiUrl, "_blank", "noopener,noreferrer");
+      toast.success("🤖 Opening Gemini with your question... Just click Enter or Send!", {
         id: toastId,
         duration: 4000,
       });
-      setIsAiModalOpen(true);
     } catch {
       toast.error("Could not prepare AI prompt", { id: toastId });
     }
@@ -350,7 +343,7 @@ export function PracticeAdminPreview() {
               return (
                 <article
                   key={q.id}
-                  className={`rounded-2xl border bg-card p-5 shadow-sm transition-all sm:p-6 ${
+                  className={`protected-practice-content select-none rounded-2xl border bg-card p-5 shadow-sm transition-all sm:p-6 ${
                     userAttempt
                       ? userAttempt.isCorrect
                         ? "border-emerald-500/30 dark:border-emerald-500/20"
@@ -577,16 +570,6 @@ export function PracticeAdminPreview() {
           ) : null}
         </div>
       )}
-
-      {/* Ask AI Handoff Modal */}
-      <AskAiModal
-        isOpen={isAiModalOpen}
-        onClose={() => setIsAiModalOpen(false)}
-        prompt={preparedAiPrompt}
-        subjectName={activeSubject?.name}
-        topicName={activeTopic?.name}
-        questionNumber={activeAiQuestionNumber}
-      />
     </section>
   );
 }

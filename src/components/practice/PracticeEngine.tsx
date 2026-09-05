@@ -23,6 +23,7 @@ import {
   revealAnswers,
 } from "@/lib/edge-practice.functions";
 
+import { ContentProtection } from "./ContentProtection";
 import { getCachedData, setCachedData } from "./offline-cache";
 import { QuestionCard } from "./QuestionCard";
 
@@ -135,7 +136,9 @@ export function PracticeEngine(props: PracticeEngineProps) {
         throw err;
       }
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 60, // 1 hour stale time so tab switching never re-fetches
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // Reset revealed state when page / topic changes
@@ -359,7 +362,7 @@ export function PracticeEngine(props: PracticeEngineProps) {
           </Button>
         </div>
       ) : (
-        <div className="mt-6 space-y-6">
+        <ContentProtection className="mt-6 space-y-6">
           {questions.map((q: StudentQuestion & { topicName?: string }) => (
             <div key={q.id}>
               {/* Per-question topic badge in multi mode */}
@@ -381,7 +384,7 @@ export function PracticeEngine(props: PracticeEngineProps) {
               />
             </div>
           ))}
-        </div>
+        </ContentProtection>
       )}
 
       {/* Pagination Controls */}

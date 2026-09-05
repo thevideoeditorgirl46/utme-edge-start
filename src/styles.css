@@ -232,3 +232,30 @@
   font-size: 1.05em;
   text-rendering: auto;
 }
+
+/* Question Content Protection & Anti-Copying */
+.protected-practice-content,
+.protected-practice-content * {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+/* Allow student notes and inputs to be fully selectable and editable */
+.protected-practice-content input,
+.protected-practice-content textarea,
+.protected-practice-content [contenteditable="true"] {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Prevent Print / PDF export of practice exam questions */
+@media print {
+  body {
+    display: none !important;
+  }
+}

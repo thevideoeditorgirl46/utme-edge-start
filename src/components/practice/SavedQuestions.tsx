@@ -2,10 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Bookmark, Bot, FileText, Loader2, Sparkles } from "lucide-react";
-import { useState } from "react";
 import { toast } from "sonner";
 
-import { AskAiModal } from "@/components/practice/AskAiModal";
+import { ContentProtection } from "@/components/practice/ContentProtection";
 import { Button } from "@/components/ui/button";
 import { MathText } from "@/components/ui/math-text";
 import { buildAskAiPrompt, GOOGLE_GEMINI_URL } from "@/lib/ask-ai";
@@ -17,11 +16,6 @@ interface SavedQuestionsProps {
 
 export function SavedQuestions({ onGoToTopic }: SavedQuestionsProps) {
   const fetchSaved = useServerFn(getSavedQuestions);
-
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-  const [preparedAiPrompt, setPreparedAiPrompt] = useState("");
-  const [activeAiSubject, setActiveAiSubject] = useState<string | undefined>();
-  const [activeAiTopic, setActiveAiTopic] = useState<string | undefined>();
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["saved-questions"],
@@ -72,22 +66,19 @@ export function SavedQuestions({ onGoToTopic }: SavedQuestionsProps) {
         options: item.options,
       });
 
-      setPreparedAiPrompt(prompt);
-      setActiveAiSubject(item.subjectName);
-      setActiveAiTopic(item.topicName);
-
+      // Silently prefill clipboard buffer in background as instant fallback
       try {
         await navigator.clipboard.writeText(prompt);
       } catch {
-        // Fallback in modal
+        // ignore
       }
 
-      window.open(GOOGLE_GEMINI_URL, "_blank", "noopener,noreferrer");
-      toast.success("🤖 Prompt ready! Paste into Google Gemini and click Send.", {
+      const geminiUrl = `${GOOGLE_GEMINI_URL}?prompt=${encodeURIComponent(prompt)}`;
+      window.open(geminiUrl, "_blank", "noopener,noreferrer");
+      toast.success("🤖 Opening Gemini with your question... Just click Enter or Send!", {
         id: toastId,
         duration: 4000,
       });
-      setIsAiModalOpen(true);
     } catch {
       toast.error("Could not prepare AI prompt", { id: toastId });
     }
@@ -113,11 +104,11 @@ export function SavedQuestions({ onGoToTopic }: SavedQuestionsProps) {
           </p>
         </div>
       ) : (
-        <div className="mt-6 space-y-4">
+        <ContentProtection className="mt-6 space-y-4">
           {items.map((item) => (
             <article
               key={item.id}
-              className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6"
+              className="protected-practice-content select-none rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
@@ -174,17 +165,8 @@ export function SavedQuestions({ onGoToTopic }: SavedQuestionsProps) {
               ) : null}
             </article>
           ))}
-        </div>
+        </ContentProtection>
       )}
-
-      {/* Ask AI Handoff Modal */}
-      <AskAiModal
-        isOpen={isAiModalOpen}
-        onClose={() => setIsAiModalOpen(false)}
-        prompt={preparedAiPrompt}
-        subjectName={activeAiSubject}
-        topicName={activeAiTopic}
-      />
     </div>
   );
 }

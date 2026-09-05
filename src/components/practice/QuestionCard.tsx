@@ -15,7 +15,6 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { AskAiModal } from "@/components/practice/AskAiModal";
 import { Button } from "@/components/ui/button";
 import { MathText } from "@/components/ui/math-text";
 import { Textarea } from "@/components/ui/textarea";
@@ -54,10 +53,15 @@ export function QuestionCard({
   const saveStudentNote = useServerFn(saveNote);
 
   // ── JAMB-style state ────────────────────────────────────────────────────────
-  // selectedOption: the radio the student clicked (highlight only, no server call yet)
-  const [selectedOption, setSelectedOption] = useState<string | null>(
-    question.attempt?.selected ?? null,
-  );
+  // Session-safe persistence so mobile tab switching never clears radio selection
+  const sessionKey = `sel_opt_${question.id}`;
+  const [selectedOption, setSelectedOption] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem(sessionKey);
+      if (saved) return saved;
+    }
+    return question.attempt?.selected ?? null;
+  });
 
   // submittedResult: populated ONLY after the student deliberately submits/reveals
   const [submittedResult, setSubmittedResult] = useState<{
@@ -143,6 +147,9 @@ export function QuestionCard({
     }
 
     setSelectedOption(key);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(sessionKey, key);
+    }
   }
 
   /** User deliberately submits their selected option. */
@@ -227,8 +234,6 @@ export function QuestionCard({
 
   // ── Ask AI State & Handler ──────────────────────────────────────────────────
   const [isAskingAi, setIsAskingAi] = useState(false);
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-  const [preparedAiPrompt, setPreparedAiPrompt] = useState("");
 
   async function handleAskAi() {
     setIsAskingAi(true);
@@ -244,24 +249,21 @@ export function QuestionCard({
         passage,
       });
 
-      setPreparedAiPrompt(prompt);
-
-      // Attempt clipboard copy
+      // Silently prefill clipboard buffer in background as instant fallback
       try {
         await navigator.clipboard.writeText(prompt);
       } catch {
-        // Fallback handled in modal
+        // ignore
       }
 
-      // Open external Google AI / Gemini in a new tab
-      window.open(GOOGLE_GEMINI_URL, "_blank", "noopener,noreferrer");
+      // Open Google Gemini directly with prefilled prompt parameter in a new tab
+      const geminiUrl = `${GOOGLE_GEMINI_URL}?prompt=${encodeURIComponent(prompt)}`;
+      window.open(geminiUrl, "_blank", "noopener,noreferrer");
 
-      toast.success("🤖 Prompt ready! Paste into Google Gemini and click Send.", {
+      toast.success("🤖 Opening Gemini with your question... Just click Enter or Send!", {
         id: toastId,
         duration: 4000,
       });
-
-      setIsAiModalOpen(true);
     } catch {
       toast.error("Could not prepare AI prompt. Please try again.", { id: toastId });
     } finally {
@@ -278,7 +280,7 @@ export function QuestionCard({
   return (
     <article
       id={`question-${question.number}`}
-      className={`rounded-2xl border bg-card p-5 shadow-sm transition-all sm:p-6 ${
+      className={`protected-practice-content select-none rounded-2xl border bg-card p-5 shadow-sm transition-all sm:p-6 ${
         submittedResult
           ? submittedResult.isCorrect
             ? "border-emerald-500/30 dark:border-emerald-500/20"
@@ -635,16 +637,6 @@ export function QuestionCard({
           </div>
         </div>
       ) : null}
-
-      {/* Ask AI Handoff Modal */}
-      <AskAiModal
-        isOpen={isAiModalOpen}
-        onClose={() => setIsAiModalOpen(false)}
-        prompt={preparedAiPrompt}
-        subjectName={subjectName}
-        topicName={topicName}
-        questionNumber={question.number}
-      />
     </article>
   );
 }
