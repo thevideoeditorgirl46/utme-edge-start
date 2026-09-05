@@ -1,10 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Bookmark, FileText, Loader2, Sparkles } from "lucide-react";
+import { Bookmark, Bot, FileText, Loader2, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
+import { AskAiModal } from "@/components/practice/AskAiModal";
 import { Button } from "@/components/ui/button";
 import { MathText } from "@/components/ui/math-text";
+import { buildAskAiPrompt, GOOGLE_GEMINI_URL } from "@/lib/ask-ai";
 import { getSavedQuestions } from "@/lib/edge-practice.functions";
 
 interface SavedQuestionsProps {
@@ -13,6 +17,11 @@ interface SavedQuestionsProps {
 
 export function SavedQuestions({ onGoToTopic }: SavedQuestionsProps) {
   const fetchSaved = useServerFn(getSavedQuestions);
+
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [preparedAiPrompt, setPreparedAiPrompt] = useState("");
+  const [activeAiSubject, setActiveAiSubject] = useState<string | undefined>();
+  const [activeAiTopic, setActiveAiTopic] = useState<string | undefined>();
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["saved-questions"],
@@ -51,6 +60,39 @@ export function SavedQuestions({ onGoToTopic }: SavedQuestionsProps) {
 
   const items = data.items ?? [];
 
+  async function handleAskAiForSavedItem(item: (typeof items)[number]) {
+    const toastId = toast.loading("Preparing your AI explanation...");
+    try {
+      const prompt = buildAskAiPrompt({
+        subjectName: item.subjectName,
+        subjectSlug: item.subjectSlug,
+        topicName: item.topicName,
+        topicSlug: item.topicSlug,
+        questionText: item.prompt,
+        options: item.options,
+      });
+
+      setPreparedAiPrompt(prompt);
+      setActiveAiSubject(item.subjectName);
+      setActiveAiTopic(item.topicName);
+
+      try {
+        await navigator.clipboard.writeText(prompt);
+      } catch {
+        // Fallback in modal
+      }
+
+      window.open(GOOGLE_GEMINI_URL, "_blank", "noopener,noreferrer");
+      toast.success("🤖 Prompt ready! Paste into Google Gemini and click Send.", {
+        id: toastId,
+        duration: 4000,
+      });
+      setIsAiModalOpen(true);
+    } catch {
+      toast.error("Could not prepare AI prompt", { id: toastId });
+    }
+  }
+
   return (
     <div className="mx-auto w-full max-w-2xl pb-16">
       <div>
@@ -85,16 +127,28 @@ export function SavedQuestions({ onGoToTopic }: SavedQuestionsProps) {
                   <span className="text-xs text-muted-foreground">{item.topicName || "Topic"}</span>
                 </div>
 
-                {item.subjectSlug && item.topicSlug ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onGoToTopic(item.subjectSlug, item.topicSlug)}
-                    className="h-7 text-xs"
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleAskAiForSavedItem(item)}
+                    title="Get a detailed explanation for this question with AI"
+                    className="inline-flex h-7 items-center gap-1 rounded-md border border-primary/25 bg-primary/10 px-2 text-[11px] font-semibold text-primary transition-all hover:bg-primary/20 active:scale-95"
                   >
-                    Go to topic
-                  </Button>
-                ) : null}
+                    <Bot className="size-3 text-primary" />
+                    <span>Ask AI</span>
+                  </button>
+
+                  {item.subjectSlug && item.topicSlug ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onGoToTopic(item.subjectSlug, item.topicSlug)}
+                      className="h-7 text-xs"
+                    >
+                      Go to topic
+                    </Button>
+                  ) : null}
+                </div>
               </div>
 
               <div className="mt-3 font-medium text-sm text-foreground leading-relaxed">
@@ -122,6 +176,15 @@ export function SavedQuestions({ onGoToTopic }: SavedQuestionsProps) {
           ))}
         </div>
       )}
+
+      {/* Ask AI Handoff Modal */}
+      <AskAiModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        prompt={preparedAiPrompt}
+        subjectName={activeAiSubject}
+        topicName={activeAiTopic}
+      />
     </div>
   );
 }

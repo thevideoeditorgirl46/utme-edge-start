@@ -2,9 +2,9 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   AlertTriangle,
   Bookmark,
+  Bot,
   Check,
   CheckCircle2,
-  Copy,
   Edit3,
   Eye,
   EyeOff,
@@ -15,9 +15,11 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { AskAiModal } from "@/components/practice/AskAiModal";
 import { Button } from "@/components/ui/button";
 import { MathText } from "@/components/ui/math-text";
 import { Textarea } from "@/components/ui/textarea";
+import { buildAskAiPrompt, GOOGLE_GEMINI_URL } from "@/lib/ask-ai";
 import type { Option, StudentQuestion } from "@/lib/edge-practice.functions";
 import { saveNote, submitAnswer, toggleBookmark } from "@/lib/edge-practice.functions";
 
@@ -30,6 +32,9 @@ interface QuestionCardProps {
   onNoteSaved?: (questionId: string, body: string) => void;
   /** Fired only once the student has actually viewed the answer for this question. */
   onScored?: (questionId: string, isCorrect: boolean) => void;
+  subjectName?: string | undefined;
+  topicName?: string | undefined;
+  passage?: string | null | undefined;
 }
 
 export function QuestionCard({
@@ -40,6 +45,9 @@ export function QuestionCard({
   onBookmarkToggled,
   onNoteSaved,
   onScored,
+  subjectName,
+  topicName,
+  passage,
 }: QuestionCardProps) {
   const submit = useServerFn(submitAnswer);
   const toggleBm = useServerFn(toggleBookmark);
@@ -217,13 +225,48 @@ export function QuestionCard({
     }
   }
 
-  function handleCopyQuestion() {
-    const optionsText = question.options.map((o) => `${o.key}. ${o.text}`).join("\n");
-    const fullText = `Question ${question.number}\n${question.prompt}\n\n${optionsText}`;
-    navigator.clipboard
-      .writeText(fullText)
-      .then(() => toast.success("Question copied to clipboard"))
-      .catch(() => toast.error("Could not copy to clipboard"));
+  // ── Ask AI State & Handler ──────────────────────────────────────────────────
+  const [isAskingAi, setIsAskingAi] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [preparedAiPrompt, setPreparedAiPrompt] = useState("");
+
+  async function handleAskAi() {
+    setIsAskingAi(true);
+    const toastId = toast.loading("Preparing your AI explanation...");
+
+    try {
+      const prompt = buildAskAiPrompt({
+        subjectName,
+        topicName,
+        questionText: question.prompt,
+        options: question.options,
+        studentSelectedOption: selectedOption,
+        passage,
+      });
+
+      setPreparedAiPrompt(prompt);
+
+      // Attempt clipboard copy
+      try {
+        await navigator.clipboard.writeText(prompt);
+      } catch {
+        // Fallback handled in modal
+      }
+
+      // Open external Google AI / Gemini in a new tab
+      window.open(GOOGLE_GEMINI_URL, "_blank", "noopener,noreferrer");
+
+      toast.success("🤖 Prompt ready! Paste into Google Gemini and click Send.", {
+        id: toastId,
+        duration: 4000,
+      });
+
+      setIsAiModalOpen(true);
+    } catch {
+      toast.error("Could not prepare AI prompt. Please try again.", { id: toastId });
+    } finally {
+      setIsAskingAi(false);
+    }
   }
 
   // ── Derived display flags ──────────────────────────────────────────────────
@@ -281,15 +324,21 @@ export function QuestionCard({
             <span className="hidden sm:inline">{question.note ? "Note Added" : "Note"}</span>
           </button>
 
-          {/* Copy Question Button */}
+          {/* Ask AI Button */}
           <button
             type="button"
-            onClick={handleCopyQuestion}
-            title="Copy question text"
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            onClick={handleAskAi}
+            disabled={isAskingAi}
+            title="Get a detailed explanation for this question with AI"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-primary/25 bg-primary/10 px-2.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 active:scale-95"
           >
-            <Copy className="size-3.5" />
-            <span className="hidden sm:inline">Copy</span>
+            {isAskingAi ? (
+              <Loader2 className="size-3.5 animate-spin text-primary" />
+            ) : (
+              <Bot className="size-3.5 text-primary" />
+            )}
+            <span className="hidden sm:inline">{isAskingAi ? "Preparing..." : "Ask AI"}</span>
+            <span className="sm:hidden">AI</span>
           </button>
         </div>
       </div>
@@ -586,6 +635,16 @@ export function QuestionCard({
           </div>
         </div>
       ) : null}
+
+      {/* Ask AI Handoff Modal */}
+      <AskAiModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        prompt={preparedAiPrompt}
+        subjectName={subjectName}
+        topicName={topicName}
+        questionNumber={question.number}
+      />
     </article>
   );
 }

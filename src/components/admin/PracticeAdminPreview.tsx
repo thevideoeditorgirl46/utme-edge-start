@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   AlertCircle,
   ArrowLeft,
+  Bot,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -18,9 +19,11 @@ import {
 import React, { useState } from "react";
 import { toast } from "sonner";
 
+import { AskAiModal } from "@/components/practice/AskAiModal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { MathText } from "@/components/ui/math-text";
+import { buildAskAiPrompt, GOOGLE_GEMINI_URL } from "@/lib/ask-ai";
 import {
   Select,
   SelectContent,
@@ -118,6 +121,44 @@ export function PracticeAdminPreview() {
     setPendingOptionMap({});
     setAllRevealed(false);
     toast.info("Simulator state reset");
+  }
+
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [preparedAiPrompt, setPreparedAiPrompt] = useState("");
+  const [activeAiQuestionNumber, setActiveAiQuestionNumber] = useState<number | undefined>();
+
+  async function handleAskAiForQuestion(
+    q: { prompt: string; options: Option[]; id: string },
+    qNumber: number,
+  ) {
+    const toastId = toast.loading("Preparing your AI explanation...");
+    try {
+      const prompt = buildAskAiPrompt({
+        subjectName: activeSubject?.name,
+        topicName: activeTopic?.name,
+        questionText: q.prompt,
+        options: q.options,
+        studentSelectedOption: attempts[q.id]?.selected,
+      });
+
+      setPreparedAiPrompt(prompt);
+      setActiveAiQuestionNumber(qNumber);
+
+      try {
+        await navigator.clipboard.writeText(prompt);
+      } catch {
+        // Fallback in modal
+      }
+
+      window.open(GOOGLE_GEMINI_URL, "_blank", "noopener,noreferrer");
+      toast.success("🤖 Prompt ready! Paste into Google Gemini and click Send.", {
+        id: toastId,
+        duration: 4000,
+      });
+      setIsAiModalOpen(true);
+    } catch {
+      toast.error("Could not prepare AI prompt", { id: toastId });
+    }
   }
 
   return (
@@ -328,7 +369,20 @@ export function PracticeAdminPreview() {
                       </span>
                     </div>
 
-                    <span className="text-[11px] text-muted-foreground">Staff Simulator Mode</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleAskAiForQuestion(q, qNumber)}
+                        title="Get a detailed explanation for this question with AI"
+                        className="inline-flex h-7 items-center gap-1 rounded-md border border-primary/25 bg-primary/10 px-2 text-[11px] font-semibold text-primary transition-all hover:bg-primary/20 active:scale-95"
+                      >
+                        <Bot className="size-3 text-primary" />
+                        <span>Ask AI</span>
+                      </button>
+                      <span className="hidden text-[11px] text-muted-foreground sm:inline">
+                        Staff Simulator Mode
+                      </span>
+                    </div>
                   </div>
 
                   {/* Prompt */}
@@ -523,6 +577,16 @@ export function PracticeAdminPreview() {
           ) : null}
         </div>
       )}
+
+      {/* Ask AI Handoff Modal */}
+      <AskAiModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        prompt={preparedAiPrompt}
+        subjectName={activeSubject?.name}
+        topicName={activeTopic?.name}
+        questionNumber={activeAiQuestionNumber}
+      />
     </section>
   );
 }

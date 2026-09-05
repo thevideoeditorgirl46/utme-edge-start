@@ -376,6 +376,8 @@ export function PracticeEngine(props: PracticeEngineProps) {
                 forceReveal={allRevealed}
                 revealedData={revealedMap[q.id]}
                 onScored={handleScored}
+                subjectName={subject.name}
+                topicName={q.topicName || (data as { topic?: { name: string } }).topic?.name}
               />
             </div>
           ))}
