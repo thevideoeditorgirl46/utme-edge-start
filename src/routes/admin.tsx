@@ -84,20 +84,7 @@ function AdminPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (!loading && user && error) {
-    return (
-      <div className="flex min-h-screen flex-col">
-        <Header />
-        <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-16">
-          <h1 className="font-display text-2xl font-extrabold">Not authorised</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            This area is restricted to Newton Edge administrators.
-          </p>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  const notAuthorised = Boolean(!loading && user && error);
 
   const queue = (data?.queue ?? []).filter((q) => {
     if (filter === "all") return true;
@@ -111,9 +98,14 @@ function AdminPage() {
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10">
         <h1 className="font-display text-3xl font-extrabold">Admin console</h1>
 
-        {isLoading ? (
+        {notAuthorised ? (
+          <p className="mt-4 text-sm text-muted-foreground">
+            This area is restricted to Newton Edge administrators.
+          </p>
+        ) : isLoading ? (
           <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
         ) : !data ? null : (
+
           <Tabs defaultValue="overview" className="mt-6">
             <TabsList className="flex-wrap">
               <TabsTrigger value="overview">Overview</TabsTrigger>
