@@ -72,6 +72,20 @@ export function PracticeEngine(props: PracticeEngineProps) {
     Record<string, { correctOption: string; explanation: string | null }>
   >({});
 
+  // Score tracker: a question only counts once its answer has actually been viewed
+  const [scoreMap, setScoreMap] = useState<Record<string, boolean>>({});
+
+  function handleScored(questionId: string, isCorrect: boolean) {
+    setScoreMap((prev) =>
+      prev[questionId] === isCorrect ? prev : { ...prev, [questionId]: isCorrect },
+    );
+  }
+
+  const scoreValues = Object.values(scoreMap);
+  const scoreGraded = scoreValues.length;
+  const scoreCorrect = scoreValues.filter(Boolean).length;
+  const scorePercent = scoreGraded ? Math.round((scoreCorrect / scoreGraded) * 100) : 0;
+
   // Build a stable cache key
   const cacheKey = isMulti
     ? `page_${subjectSlug}_multi_${(props as MultiTopicProps).topicSlugs.sort().join("-")}_${currentPage}`
@@ -127,6 +141,7 @@ export function PracticeEngine(props: PracticeEngineProps) {
   useEffect(() => {
     setAllRevealed(false);
     setRevealedMap({});
+    setScoreMap({});
   }, [currentPage, cacheKey]);
 
   // Prefetch next page
@@ -282,6 +297,22 @@ export function PracticeEngine(props: PracticeEngineProps) {
           </p>
         </div>
 
+        {/* Score tracker — only counts questions whose answer has been viewed */}
+        {total > 0 ? (
+          <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-2.5">
+            <Trophy className="size-4 text-primary" />
+            <div>
+              <p className="font-display text-lg font-extrabold leading-none text-foreground">
+                {scoreCorrect} / {scoreGraded}
+              </p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                Score this page{scoreGraded > 0 ? ` · ${scorePercent}%` : " · answers viewed only"}
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+
         {total > 0 ? (
           <Button
             type="button"
@@ -344,7 +375,9 @@ export function PracticeEngine(props: PracticeEngineProps) {
                 question={q}
                 forceReveal={allRevealed}
                 revealedData={revealedMap[q.id]}
+                onScored={handleScored}
               />
+
             </div>
           ))}
         </div>
