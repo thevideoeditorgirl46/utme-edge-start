@@ -47,6 +47,16 @@ interface MultiTopicProps {
 
 type PracticeEngineProps = SingleTopicProps | MultiTopicProps;
 
+interface PracticePageData {
+  subject: { name: string };
+  topic?: { name: string };
+  topicNames?: string[];
+  total: number;
+  totalPages: number;
+  pageSize: number;
+  questions: (StudentQuestion & { topicName?: string })[];
+}
+
 export function PracticeEngine(props: PracticeEngineProps) {
   const { subjectSlug, currentPage, onPageChange, onBackToTopics } = props;
   const isMulti = props.mode === "multi";
