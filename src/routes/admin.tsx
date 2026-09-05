@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { QuestionBankManager } from "@/components/admin/QuestionBankManager";
+import { PracticeAdminPreview } from "@/components/admin/PracticeAdminPreview";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
 import { Button } from "@/components/ui/button";
@@ -118,6 +119,7 @@ function AdminPage() {
             <TabsList className="flex-wrap">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="questions">Question bank</TabsTrigger>
+              <TabsTrigger value="preview">Practice preview</TabsTrigger>
               <TabsTrigger value="queue">Verification queue</TabsTrigger>
               <TabsTrigger value="students">Students</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -136,6 +138,10 @@ function AdminPage() {
 
             <TabsContent value="questions" className="mt-6">
               <QuestionBankManager />
+            </TabsContent>
+
+            <TabsContent value="preview" className="mt-6">
+              <PracticeAdminPreview />
             </TabsContent>
 
             <TabsContent value="queue" className="mt-6">

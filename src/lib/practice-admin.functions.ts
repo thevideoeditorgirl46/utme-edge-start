@@ -307,3 +307,187 @@ export const upsertAdminQuestion = createServerFn({ method: "POST" })
       return { id: inserted.id, revision: 1 };
     }
   });
+
+export type BulkQuestionInput = {
+  topic_id: string;
+  prompt: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_option: "A" | "B" | "C" | "D";
+  explanation?: string | null;
+  image_url?: string | null;
+  source?: string | null;
+  status?: "draft" | "pending" | "approved" | "published" | "archived";
+};
+
+export const bulkUpsertAdminQuestions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { questions: BulkQuestionInput[] }) => {
+    if (!Array.isArray(input?.questions) || input.questions.length === 0) {
+      throw new Error("No questions provided for bulk upload");
+    }
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const insertedIds: string[] = [];
+    let count = 0;
+
+    for (const q of data.questions) {
+      if (!q.topic_id || !q.prompt?.trim() || !q.option_a?.trim() || !q.option_b?.trim()) {
+        continue;
+      }
+
+      const correct = ["A", "B", "C", "D"].includes(q.correct_option) ? q.correct_option : "A";
+
+      const { data: inserted, error: insertErr } = await supabaseAdmin
+        .from("questions")
+        .insert({
+          topic_id: q.topic_id,
+          prompt: q.prompt.trim(),
+          option_a: q.option_a.trim(),
+          option_b: q.option_b.trim(),
+          option_c: (q.option_c || "").trim(),
+          option_d: (q.option_d || "").trim(),
+          correct_option: correct,
+          explanation: q.explanation?.trim() || null,
+          source: q.source?.trim() || "Bulk AI/Text Import",
+          image_url: q.image_url?.trim() || null,
+          status: q.status || "approved",
+          sort_order: count,
+          revision: 1,
+          created_by: userId,
+        })
+        .select("id, revision, prompt, topic_id")
+        .single();
+
+      if (insertErr) {
+        console.error("Failed to insert bulk question:", insertErr);
+        continue;
+      }
+
+      await supabaseAdmin.from("question_revisions").insert({
+        question_id: inserted.id,
+        revision: 1,
+        snapshot: inserted,
+        edited_by: userId,
+      });
+
+      insertedIds.push(inserted.id);
+      count++;
+    }
+
+    return { ok: true, count, insertedIds };
+  });
+
+export const getAdminPracticePreview = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input?: {
+      subjectSlug?: string | undefined;
+      topicSlug?: string | undefined;
+      statusFilter?: string | undefined;
+    }) => input || {},
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Fetch subjects and topics
+    const [subjectsRes, topicsRes] = await Promise.all([
+      supabaseAdmin.from("practice_subjects").select("id, slug, name").order("sort_order"),
+      supabaseAdmin
+        .from("practice_topics")
+        .select("id, slug, name, subject_id")
+        .order("sort_order"),
+    ]);
+
+    const subjects = subjectsRes.data ?? [];
+    const topics = topicsRes.data ?? [];
+
+    const activeSubject = subjects.find((s) => s.slug === data.subjectSlug) ?? subjects[0];
+    const availableTopics = topics.filter((t) =>
+      activeSubject ? t.subject_id === activeSubject.id : true,
+    );
+    const activeTopic =
+      availableTopics.find((t) => t.slug === data.topicSlug) ?? availableTopics[0];
+
+    if (!activeTopic) {
+      return {
+        subjects,
+        topics: availableTopics,
+        activeSubject: activeSubject ?? null,
+        activeTopic: null,
+        questions: [],
+      };
+    }
+
+    let query = supabaseAdmin
+      .from("questions")
+      .select("*")
+      .eq("topic_id", activeTopic.id)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+    if (data.statusFilter && data.statusFilter !== "all") {
+      query = query.eq(
+        "status",
+        data.statusFilter as "draft" | "pending" | "approved" | "published" | "archived",
+      );
+    }
+
+    const { data: rows, error } = await query;
+    if (error) throw new Error(error.message);
+
+    type QuestionRow = {
+      id: string;
+      topic_id: string;
+      prompt: string;
+      option_a: string;
+      option_b: string;
+      option_c: string;
+      option_d: string;
+      correct_option: "A" | "B" | "C" | "D";
+      explanation: string | null;
+      image_url: string | null;
+      source: string | null;
+      status: string;
+      revision: number;
+      sort_order: number;
+    };
+
+    const studentQuestions = ((rows as unknown as QuestionRow[]) ?? []).map((q, idx) => ({
+      id: q.id,
+      number: idx + 1,
+      prompt: q.prompt,
+      imageUrl: q.image_url,
+      options: [
+        { key: "A" as const, text: q.option_a },
+        { key: "B" as const, text: q.option_b },
+        { key: "C" as const, text: q.option_c },
+        { key: "D" as const, text: q.option_d },
+      ],
+      correctOption: q.correct_option,
+      explanation: q.explanation,
+      status: q.status,
+      attempt: null,
+      bookmarked: false,
+      note: null,
+    }));
+
+    return {
+      subjects,
+      topics: availableTopics,
+      activeSubject,
+      activeTopic,
+      questions: studentQuestions,
+    };
+  });

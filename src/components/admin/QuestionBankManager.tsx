@@ -4,19 +4,23 @@ import {
   Archive,
   Check,
   CheckCircle,
+  Copy,
   Edit2,
+  Eye,
+  FileText,
   Filter,
   Loader2,
   Plus,
   Search,
   Sparkles,
+  UploadCloud,
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { BulkQuestionUploader } from "@/components/admin/BulkQuestionUploader";
 import { Button } from "@/components/ui/button";
-import { MathText } from "@/components/ui/math-text";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MathText } from "@/components/ui/math-text";
 import {
   Select,
   SelectContent,
@@ -65,6 +70,7 @@ export function QuestionBankManager() {
   const updateStatus = useServerFn(updateAdminQuestionStatus);
   const saveQuestion = useServerFn(upsertAdminQuestion);
 
+  const [isBulkOpen, setIsBulkOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
@@ -81,11 +87,13 @@ export function QuestionBankManager() {
   const [formOptionD, setFormOptionD] = useState("");
   const [formCorrect, setFormCorrect] = useState<"A" | "B" | "C" | "D">("A");
   const [formExplanation, setFormExplanation] = useState("");
+  const [formExplanationImageUrl, setFormExplanationImageUrl] = useState("");
   const [formSource, setFormSource] = useState("");
   const [formImageUrl, setFormImageUrl] = useState("");
   const [formStatus, setFormStatus] = useState<
     "draft" | "pending" | "approved" | "published" | "archived"
   >("pending");
+  const [previewMathInModal, setPreviewMathInModal] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-questions", selectedSubject, selectedTopic, selectedStatus, searchTerm],
@@ -146,9 +154,11 @@ export function QuestionBankManager() {
     setFormOptionD("");
     setFormCorrect("A");
     setFormExplanation("");
+    setFormExplanationImageUrl("");
     setFormSource("NET Foundational Class Content");
     setFormImageUrl("");
     setFormStatus("pending");
+    setPreviewMathInModal(false);
     setIsModalOpen(true);
   }
 
@@ -161,10 +171,22 @@ export function QuestionBankManager() {
     setFormOptionC(q.option_c);
     setFormOptionD(q.option_d);
     setFormCorrect(q.correct_option);
-    setFormExplanation(q.explanation || "");
+
+    // Extract any markdown image in explanation if present
+    let cleanExp = q.explanation || "";
+    let expImg = "";
+    const imgMatch = cleanExp.match(/!\[(?:.*?)\]\((https?:\/\/\S+|\/\S+)\)/i);
+    if (imgMatch) {
+      expImg = imgMatch[1];
+      cleanExp = cleanExp.replace(imgMatch[0], "").trim();
+    }
+
+    setFormExplanation(cleanExp);
+    setFormExplanationImageUrl(expImg);
     setFormSource(q.source || "");
     setFormImageUrl(q.image_url || "");
     setFormStatus(q.status);
+    setPreviewMathInModal(false);
     setIsModalOpen(true);
   }
 
@@ -182,6 +204,16 @@ export function QuestionBankManager() {
       return;
     }
 
+    let finalExplanation = formExplanation.trim();
+    if (
+      formExplanationImageUrl.trim() &&
+      !finalExplanation.includes(formExplanationImageUrl.trim())
+    ) {
+      finalExplanation = finalExplanation
+        ? `${finalExplanation}\n\n![Explanation Diagram](${formExplanationImageUrl.trim()})`
+        : `![Explanation Diagram](${formExplanationImageUrl.trim()})`;
+    }
+
     saveMutation.mutate({
       id: editingQuestion?.id,
       topic_id: formTopicId,
@@ -191,7 +223,7 @@ export function QuestionBankManager() {
       option_c: formOptionC,
       option_d: formOptionD,
       correct_option: formCorrect,
-      explanation: formExplanation,
+      explanation: finalExplanation || undefined,
       source: formSource,
       image_url: formImageUrl.trim() || undefined,
       status: formStatus,
@@ -275,6 +307,16 @@ export function QuestionBankManager() {
             />
           </div>
 
+          <Button
+            onClick={() => setIsBulkOpen((prev) => !prev)}
+            variant={isBulkOpen ? "secondary" : "outline"}
+            size="sm"
+            className="h-9 gap-1.5 text-xs"
+          >
+            <UploadCloud className="size-3.5" />
+            {isBulkOpen ? "Back to Question List" : "Bulk AI Upload"}
+          </Button>
+
           <Button onClick={openCreateModal} size="sm" className="h-9 gap-1.5 text-xs">
             <Plus className="size-3.5" />
             Add Question
@@ -282,8 +324,14 @@ export function QuestionBankManager() {
         </div>
       </div>
 
-      {/* Questions List */}
-      {isLoading ? (
+      {/* Bulk Upload Mode or Standard Question List */}
+      {isBulkOpen ? (
+        <BulkQuestionUploader
+          subjects={subjects}
+          topics={(data?.topics as AdminTopic[]) ?? []}
+          onSuccess={() => setIsBulkOpen(false)}
+        />
+      ) : isLoading ? (
         <div className="space-y-3 py-6">
           {[1, 2, 3].map((i) => (
             <div
@@ -490,13 +538,29 @@ export function QuestionBankManager() {
 
             {/* Prompt */}
             <div>
-              <Label className="text-xs font-semibold">Question Prompt</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold">
+                  Question Prompt (LaTeX math supported)
+                </Label>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMathInModal((p) => !p)}
+                  className="text-xs text-primary hover:underline"
+                >
+                  {previewMathInModal ? "Hide Math Preview" : "Show Math Preview"}
+                </button>
+              </div>
               <Textarea
-                placeholder="Enter question text..."
+                placeholder="Enter question text (e.g. Find the value of $x$ when $2x + 1 = 9$)..."
                 value={formPrompt}
                 onChange={(e) => setFormPrompt(e.target.value)}
                 className="mt-1 min-h-[90px] text-sm"
               />
+              {previewMathInModal && formPrompt ? (
+                <div className="mt-2 rounded-xl border border-border/80 bg-secondary/30 p-3 text-sm">
+                  <MathText content={formPrompt} />
+                </div>
+              ) : null}
             </div>
 
             {/* Options */}
@@ -579,31 +643,63 @@ export function QuestionBankManager() {
               </div>
             </div>
 
-            {/* Explanation */}
+            {/* Teaching Explanation */}
             <div>
-              <Label className="text-xs font-semibold">Teaching Explanation</Label>
+              <Label className="text-xs font-semibold">Teaching Explanation (Worked Steps)</Label>
               <Textarea
-                placeholder="Explain the step-by-step reasoning and key concept..."
+                placeholder="Explain the step-by-step reasoning, formula, and key concept..."
                 value={formExplanation}
                 onChange={(e) => setFormExplanation(e.target.value)}
                 className="mt-1 min-h-[80px] text-sm"
               />
-            </div>
-
-            {/* Image URL */}
-            <div>
-              <Label className="text-xs font-semibold">Diagram / Image URL (Optional)</Label>
-              <Input
-                placeholder="https://... or /assets/..."
-                value={formImageUrl}
-                onChange={(e) => setFormImageUrl(e.target.value)}
-                className="mt-1 text-sm font-mono text-xs"
-              />
-              {formImageUrl ? (
-                <div className="mt-2 overflow-hidden rounded-lg border border-border max-w-xs">
-                  <img src={formImageUrl} alt="Preview" className="max-h-32 object-contain" />
+              {previewMathInModal && formExplanation ? (
+                <div className="mt-2 rounded-xl border border-border/80 bg-secondary/30 p-3 text-sm">
+                  <MathText content={formExplanation} />
                 </div>
               ) : null}
+            </div>
+
+            {/* Image URLs Grid (Question Diagram + Explanation Diagram) */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {/* Question Diagram URL */}
+              <div>
+                <Label className="text-xs font-semibold">Question Diagram URL (Optional)</Label>
+                <Input
+                  placeholder="https://... or /assets/..."
+                  value={formImageUrl}
+                  onChange={(e) => setFormImageUrl(e.target.value)}
+                  className="mt-1 text-xs font-mono"
+                />
+                {formImageUrl ? (
+                  <div className="mt-2 overflow-hidden rounded-lg border border-border max-w-xs">
+                    <img
+                      src={formImageUrl}
+                      alt="Question Diagram"
+                      className="max-h-28 object-contain"
+                    />
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Explanation Diagram URL */}
+              <div>
+                <Label className="text-xs font-semibold">Explanation Diagram URL (Optional)</Label>
+                <Input
+                  placeholder="https://... (Worked solution chart/diagram)"
+                  value={formExplanationImageUrl}
+                  onChange={(e) => setFormExplanationImageUrl(e.target.value)}
+                  className="mt-1 text-xs font-mono"
+                />
+                {formExplanationImageUrl ? (
+                  <div className="mt-2 overflow-hidden rounded-lg border border-border max-w-xs">
+                    <img
+                      src={formExplanationImageUrl}
+                      alt="Explanation Diagram"
+                      className="max-h-28 object-contain"
+                    />
+                  </div>
+                ) : null}
+              </div>
             </div>
 
             {/* Source */}
