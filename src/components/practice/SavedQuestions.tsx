@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Bookmark, FileText, Loader2, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { MathText } from "@/components/ui/math-text";
 import { getSavedQuestions } from "@/lib/edge-practice.functions";
 
 interface SavedQuestionsProps {
@@ -96,14 +97,14 @@ export function SavedQuestions({ onGoToTopic }: SavedQuestionsProps) {
                 ) : null}
               </div>
 
-              <p className="mt-3 font-medium text-sm text-foreground leading-relaxed">
-                {item.prompt}
-              </p>
+              <div className="mt-3 font-medium text-sm text-foreground leading-relaxed">
+                <MathText content={item.prompt} />
+              </div>
 
               <div className="mt-3 space-y-1 text-xs text-muted-foreground">
                 {item.options.map((opt) => (
                   <p key={opt.key}>
-                    <span className="font-bold">{opt.key}.</span> {opt.text}
+                    <span className="font-bold">{opt.key}.</span> <MathText content={opt.text} />
                   </p>
                 ))}
               </div>

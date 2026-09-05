@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { MathText } from "@/components/ui/math-text";
 import { Textarea } from "@/components/ui/textarea";
 import type { Option, StudentQuestion } from "@/lib/edge-practice.functions";
 import { saveNote, submitAnswer, toggleBookmark } from "@/lib/edge-practice.functions";
@@ -250,9 +251,10 @@ export function QuestionCard({
 
       {/* Question Prompt */}
       <div className="mt-4">
-        <p className="text-base font-medium leading-relaxed text-foreground whitespace-pre-wrap">
-          {question.prompt}
-        </p>
+        <MathText
+          content={question.prompt}
+          className="text-base font-medium leading-relaxed text-foreground whitespace-pre-wrap"
+        />
 
         {question.imageUrl ? (
           <div className="mt-4 overflow-hidden rounded-xl border border-border">
@@ -309,7 +311,7 @@ export function QuestionCard({
               >
                 {option.key}
               </span>
-              <span className="mt-0.5 flex-1 leading-snug">{option.text}</span>
+              <MathText content={option.text} className="mt-0.5 flex-1 leading-snug" />
               {isCorrectAnswer ? (
                 <Check className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
               ) : null}
@@ -407,7 +409,7 @@ export function QuestionCard({
             Explanation
           </p>
           <div className="mt-2 text-foreground leading-relaxed whitespace-pre-wrap">
-            {result.explanation}
+            <MathText content={result.explanation} />
           </div>
         </div>
       ) : null}

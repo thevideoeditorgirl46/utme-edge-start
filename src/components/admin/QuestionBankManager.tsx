@@ -16,6 +16,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { MathText } from "@/components/ui/math-text";
 import {
   Dialog,
   DialogContent,
@@ -81,6 +82,7 @@ export function QuestionBankManager() {
   const [formCorrect, setFormCorrect] = useState<"A" | "B" | "C" | "D">("A");
   const [formExplanation, setFormExplanation] = useState("");
   const [formSource, setFormSource] = useState("");
+  const [formImageUrl, setFormImageUrl] = useState("");
   const [formStatus, setFormStatus] = useState<
     "draft" | "pending" | "approved" | "published" | "archived"
   >("pending");
@@ -122,6 +124,7 @@ export function QuestionBankManager() {
       correct_option: "A" | "B" | "C" | "D";
       explanation?: string;
       source?: string;
+      image_url?: string;
       status?: "draft" | "pending" | "approved" | "published" | "archived";
     }) => saveQuestion({ data: input }),
     onSuccess: () => {
@@ -144,6 +147,7 @@ export function QuestionBankManager() {
     setFormCorrect("A");
     setFormExplanation("");
     setFormSource("NET Foundational Class Content");
+    setFormImageUrl("");
     setFormStatus("pending");
     setIsModalOpen(true);
   }
@@ -159,6 +163,7 @@ export function QuestionBankManager() {
     setFormCorrect(q.correct_option);
     setFormExplanation(q.explanation || "");
     setFormSource(q.source || "");
+    setFormImageUrl(q.image_url || "");
     setFormStatus(q.status);
     setIsModalOpen(true);
   }
@@ -180,6 +185,7 @@ export function QuestionBankManager() {
       correct_option: formCorrect,
       explanation: formExplanation,
       source: formSource,
+      image_url: formImageUrl.trim() || undefined,
       status: formStatus,
     });
   }
@@ -373,9 +379,20 @@ export function QuestionBankManager() {
 
               {/* Prompt & Options */}
               <div className="mt-3">
-                <p className="text-sm font-medium text-foreground whitespace-pre-wrap">
-                  {q.prompt}
-                </p>
+                <div className="text-sm font-medium text-foreground whitespace-pre-wrap">
+                  <MathText content={q.prompt} />
+                </div>
+
+                {q.image_url ? (
+                  <div className="mt-3 overflow-hidden rounded-lg border border-border max-w-sm">
+                    <img
+                      src={q.image_url}
+                      alt="Question diagram"
+                      loading="lazy"
+                      className="max-h-48 object-contain"
+                    />
+                  </div>
+                ) : null}
 
                 <div className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
                   <div
@@ -385,7 +402,7 @@ export function QuestionBankManager() {
                         : "border-border text-muted-foreground"
                     }`}
                   >
-                    <span className="font-semibold">A.</span> {q.option_a}
+                    <span className="font-semibold">A.</span> <MathText content={q.option_a} />
                   </div>
                   <div
                     className={`rounded-lg border p-2 ${
@@ -394,7 +411,7 @@ export function QuestionBankManager() {
                         : "border-border text-muted-foreground"
                     }`}
                   >
-                    <span className="font-semibold">B.</span> {q.option_b}
+                    <span className="font-semibold">B.</span> <MathText content={q.option_b} />
                   </div>
                   <div
                     className={`rounded-lg border p-2 ${
@@ -403,7 +420,7 @@ export function QuestionBankManager() {
                         : "border-border text-muted-foreground"
                     }`}
                   >
-                    <span className="font-semibold">C.</span> {q.option_c}
+                    <span className="font-semibold">C.</span> <MathText content={q.option_c} />
                   </div>
                   <div
                     className={`rounded-lg border p-2 ${
@@ -412,14 +429,16 @@ export function QuestionBankManager() {
                         : "border-border text-muted-foreground"
                     }`}
                   >
-                    <span className="font-semibold">D.</span> {q.option_d}
+                    <span className="font-semibold">D.</span> <MathText content={q.option_d} />
                   </div>
                 </div>
 
                 {q.explanation ? (
                   <div className="mt-3 rounded-lg border border-border/80 bg-secondary/30 p-2.5 text-xs">
                     <span className="font-semibold text-muted-foreground">Explanation: </span>
-                    <span className="text-foreground">{q.explanation}</span>
+                    <span className="text-foreground">
+                      <MathText content={q.explanation} />
+                    </span>
                   </div>
                 ) : null}
 
@@ -561,6 +580,22 @@ export function QuestionBankManager() {
                 onChange={(e) => setFormExplanation(e.target.value)}
                 className="mt-1 min-h-[80px] text-sm"
               />
+            </div>
+
+            {/* Image URL */}
+            <div>
+              <Label className="text-xs font-semibold">Diagram / Image URL (Optional)</Label>
+              <Input
+                placeholder="https://... or /assets/..."
+                value={formImageUrl}
+                onChange={(e) => setFormImageUrl(e.target.value)}
+                className="mt-1 text-sm font-mono text-xs"
+              />
+              {formImageUrl ? (
+                <div className="mt-2 overflow-hidden rounded-lg border border-border max-w-xs">
+                  <img src={formImageUrl} alt="Preview" className="max-h-32 object-contain" />
+                </div>
+              ) : null}
             </div>
 
             {/* Source */}
