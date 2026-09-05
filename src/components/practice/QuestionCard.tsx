@@ -22,7 +22,7 @@ import { saveNote, submitAnswer, toggleBookmark } from "@/lib/edge-practice.func
 interface QuestionCardProps {
   question: StudentQuestion;
   forceReveal?: boolean;
-  revealedData?: { correctOption: string; explanation: string | null } | null;
+  revealedData?: { correctOption: string; explanation: string | null } | null | undefined;
   onAttemptRecorded?: (questionId: string, selected: string, isCorrect: boolean) => void;
   onBookmarkToggled?: (questionId: string, bookmarked: boolean) => void;
   onNoteSaved?: (questionId: string, body: string) => void;

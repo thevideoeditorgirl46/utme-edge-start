@@ -58,8 +58,8 @@ export type AccessStatus = "APPROVED" | "PENDING" | "DENIED" | "NOT_FOUND" | "ER
 export type VerifyNETAccessResult = {
   status: AccessStatus;
   message: string;
-  studentName?: string;
-  registrationId?: string;
+  studentName?: string | undefined;
+  registrationId?: string | undefined;
   verifiedPoints: number;
   requiredPoints: number;
   pendingPoints: number;
@@ -67,7 +67,7 @@ export type VerifyNETAccessResult = {
 
 export const verifyNETAccess = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input?: { netId?: string }) => ({
+  .inputValidator((input?: { netId?: string | undefined }) => ({
     netId: input?.netId ? input.netId.trim().toUpperCase() : undefined,
   }))
   .handler(async ({ data, context }): Promise<VerifyNETAccessResult> => {
@@ -553,6 +553,10 @@ export const getSavedQuestions = createServerFn({ method: "GET" })
       option_d: string;
       topic_id: string;
     };
+
+    const topics = await db
+      .from("practice_topics")
+      .select("id, name, slug, subject_id, practice_subjects(name, slug)");
 
     const topicById = new Map(
       ((topics.data as unknown as JoinedTopic[]) ?? []).map((t) => [t.id, t]),
