@@ -28,6 +28,8 @@ interface QuestionCardProps {
   onAttemptRecorded?: (questionId: string, selected: string, isCorrect: boolean) => void;
   onBookmarkToggled?: (questionId: string, bookmarked: boolean) => void;
   onNoteSaved?: (questionId: string, body: string) => void;
+  /** Fired only once the student has actually viewed the answer for this question. */
+  onScored?: (questionId: string, isCorrect: boolean) => void;
 }
 
 export function QuestionCard({
@@ -37,6 +39,7 @@ export function QuestionCard({
   onAttemptRecorded,
   onBookmarkToggled,
   onNoteSaved,
+  onScored,
 }: QuestionCardProps) {
   const submit = useServerFn(submitAnswer);
   const toggleBm = useServerFn(toggleBookmark);
@@ -111,6 +114,14 @@ export function QuestionCard({
       setShowAnswer(true);
     }
   }, [forceReveal, submittedResult]);
+
+  // Report the score only after the answer has actually been viewed.
+  useEffect(() => {
+    if (submittedResult && (showAnswer || forceReveal) && selectedOption) {
+      onScored?.(question.id, submittedResult.isCorrect);
+    }
+  }, [submittedResult, showAnswer, forceReveal, selectedOption]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 

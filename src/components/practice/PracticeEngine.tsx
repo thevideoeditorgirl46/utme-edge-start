@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Sparkles,
   Tag,
+  Trophy,
   WifiOff,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -47,6 +48,16 @@ interface MultiTopicProps {
 
 type PracticeEngineProps = SingleTopicProps | MultiTopicProps;
 
+interface PracticePageData {
+  subject: { name: string };
+  topic?: { name: string };
+  topicNames?: string[];
+  total: number;
+  totalPages: number;
+  pageSize: number;
+  questions: (StudentQuestion & { topicName?: string })[];
+}
+
 export function PracticeEngine(props: PracticeEngineProps) {
   const { subjectSlug, currentPage, onPageChange, onBackToTopics } = props;
   const isMulti = props.mode === "multi";
@@ -61,6 +72,20 @@ export function PracticeEngine(props: PracticeEngineProps) {
   const [revealedMap, setRevealedMap] = useState<
     Record<string, { correctOption: string; explanation: string | null }>
   >({});
+
+  // Score tracker: a question only counts once its answer has actually been viewed
+  const [scoreMap, setScoreMap] = useState<Record<string, boolean>>({});
+
+  function handleScored(questionId: string, isCorrect: boolean) {
+    setScoreMap((prev) =>
+      prev[questionId] === isCorrect ? prev : { ...prev, [questionId]: isCorrect },
+    );
+  }
+
+  const scoreValues = Object.values(scoreMap);
+  const scoreGraded = scoreValues.length;
+  const scoreCorrect = scoreValues.filter(Boolean).length;
+  const scorePercent = scoreGraded ? Math.round((scoreCorrect / scoreGraded) * 100) : 0;
 
   // Build a stable cache key
   const cacheKey = isMulti
@@ -79,30 +104,30 @@ export function PracticeEngine(props: PracticeEngineProps) {
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey,
-    queryFn: async () => {
+    queryFn: async (): Promise<PracticePageData> => {
       try {
-        let res;
+        let res: PracticePageData;
         if (isMulti) {
-          res = await fetchMultiPage({
+          res = (await fetchMultiPage({
             data: {
               subject: subjectSlug,
               topicSlugs: (props as MultiTopicProps).topicSlugs,
               page: currentPage,
             },
-          });
+          })) as PracticePageData;
         } else {
-          res = await fetchSinglePage({
+          res = (await fetchSinglePage({
             data: {
               subject: subjectSlug,
               topic: (props as SingleTopicProps).topicSlug,
               page: currentPage,
             },
-          });
+          })) as PracticePageData;
         }
         setCachedData(cacheKey, res);
         return res;
       } catch (err) {
-        const cached = getCachedData<typeof data>(cacheKey);
+        const cached = getCachedData<PracticePageData>(cacheKey);
         if (cached) {
           toast.info("Offline mode: viewing previously loaded questions");
           return cached;
@@ -117,6 +142,7 @@ export function PracticeEngine(props: PracticeEngineProps) {
   useEffect(() => {
     setAllRevealed(false);
     setRevealedMap({});
+    setScoreMap({});
   }, [currentPage, cacheKey]);
 
   // Prefetch next page
@@ -272,6 +298,22 @@ export function PracticeEngine(props: PracticeEngineProps) {
           </p>
         </div>
 
+        {/* Score tracker — only counts questions whose answer has been viewed */}
+        {total > 0 ? (
+          <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-2.5">
+            <Trophy className="size-4 text-primary" />
+            <div>
+              <p className="font-display text-lg font-extrabold leading-none text-foreground">
+                {scoreCorrect} / {scoreGraded}
+              </p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                Score this page{scoreGraded > 0 ? ` · ${scorePercent}%` : " · answers viewed only"}
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+
         {total > 0 ? (
           <Button
             type="button"
@@ -334,7 +376,9 @@ export function PracticeEngine(props: PracticeEngineProps) {
                 question={q}
                 forceReveal={allRevealed}
                 revealedData={revealedMap[q.id]}
+                onScored={handleScored}
               />
+
             </div>
           ))}
         </div>
