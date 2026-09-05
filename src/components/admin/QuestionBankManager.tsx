@@ -177,8 +177,8 @@ export function QuestionBankManager() {
     let expImg = "";
     const imgMatch = cleanExp.match(/!\[(?:.*?)\]\((https?:\/\/\S+|\/\S+)\)/i);
     if (imgMatch) {
-      expImg = imgMatch[1];
-      cleanExp = cleanExp.replace(imgMatch[0], "").trim();
+      expImg = imgMatch[1] ?? "";
+      cleanExp = cleanExp.replace(imgMatch[0] ?? "", "").trim();
     }
 
     setFormExplanation(cleanExp);
