@@ -6,6 +6,8 @@ import {
   CheckCircle2,
   Copy,
   Edit3,
+  Eye,
+  EyeOff,
   FileText,
   Loader2,
   XCircle,
@@ -40,32 +42,34 @@ export function QuestionCard({
   const toggleBm = useServerFn(toggleBookmark);
   const saveStudentNote = useServerFn(saveNote);
 
-  // Local state initialized with server question state
+  // ── JAMB-style state ────────────────────────────────────────────────────────
+  // selectedOption: the radio the student clicked (highlight only, no server call yet)
   const [selectedOption, setSelectedOption] = useState<string | null>(
     question.attempt?.selected ?? null,
   );
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [result, setResult] = useState<{
+
+  // submittedResult: populated ONLY after the student deliberately submits/reveals
+  const [submittedResult, setSubmittedResult] = useState<{
     isCorrect: boolean;
     correctOption: string;
     explanation: string | null;
   } | null>(
-    question.attempt
+    // If they previously attempted AND we have revealed data, pre-populate
+    question.attempt && revealedData
       ? {
           isCorrect: question.attempt.isCorrect,
-          correctOption: revealedData?.correctOption ?? "",
-          explanation: revealedData?.explanation ?? null,
+          correctOption: revealedData.correctOption,
+          explanation: revealedData.explanation,
         }
-      : revealedData
-        ? {
-            isCorrect: selectedOption === revealedData.correctOption,
-            correctOption: revealedData.correctOption,
-            explanation: revealedData.explanation,
-          }
-        : null,
+      : null,
   );
 
-  // Answer change confirmation state
+  // showAnswer: user explicitly opened the answer panel
+  const [showAnswer, setShowAnswer] = useState(false);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Change-answer flow (only available after submission)
   const [isChangingAnswer, setIsChangingAnswer] = useState(false);
   const [pendingOption, setPendingOption] = useState<string | null>(null);
 
@@ -78,43 +82,72 @@ export function QuestionCard({
   const [noteBody, setNoteBody] = useState(question.note || "");
   const [isSavingNote, setIsSavingNote] = useState(false);
 
-  // Sync with revealed data if forceReveal or revealedData updates
+  // ── Sync forceReveal / revealedData from parent ──────────────────────────
   useEffect(() => {
-    if (revealedData) {
-      setResult((prev) => ({
+    if (revealedData && !submittedResult) {
+      // Parent bulk-revealed — treat as auto-submitted
+      setSubmittedResult({
         isCorrect: selectedOption ? selectedOption === revealedData.correctOption : false,
         correctOption: revealedData.correctOption,
         explanation: revealedData.explanation,
-      }));
+      });
+      setShowAnswer(true);
+    } else if (revealedData && submittedResult) {
+      // Update correctOption / explanation if revealed data arrives after a prior attempt
+      setSubmittedResult((prev) =>
+        prev
+          ? {
+              ...prev,
+              correctOption: revealedData.correctOption,
+              explanation: revealedData.explanation,
+            }
+          : prev,
+      );
     }
-  }, [revealedData, selectedOption]);
+  }, [revealedData]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Immediate answer selection handler
-  async function handleSelectOption(key: "A" | "B" | "C" | "D") {
-    // If already locked and not in change-flow, do nothing
-    if (result && !isChangingAnswer) return;
+  useEffect(() => {
+    if (forceReveal && submittedResult) {
+      setShowAnswer(true);
+    }
+  }, [forceReveal, submittedResult]);
 
-    if (result && isChangingAnswer) {
+  // ── Handlers ────────────────────────────────────────────────────────────────
+
+  /** JAMB click = radio highlight only. No server call yet. */
+  function handleSelectOption(key: "A" | "B" | "C" | "D") {
+    if (submittedResult && !isChangingAnswer) return; // locked after submission
+    if (isSubmitting) return;
+
+    if (isChangingAnswer) {
       setPendingOption(key);
       return;
     }
 
-    // Immediate submission
     setSelectedOption(key);
+  }
+
+  /** User deliberately submits their selected option. */
+  async function handleSubmitAnswer() {
+    if (!selectedOption || isSubmitting) return;
+
     setIsSubmitting(true);
     try {
-      const res = await submit({ data: { questionId: question.id, selected: key } });
-      setResult({
+      const res = await submit({
+        data: { questionId: question.id, selected: selectedOption },
+      });
+      setSubmittedResult({
         isCorrect: res.isCorrect,
         correctOption: res.correctOption,
         explanation: res.explanation,
       });
+      // Automatically show answer after submission so feedback is visible
+      setShowAnswer(true);
       setIsChangingAnswer(false);
       setPendingOption(null);
-      onAttemptRecorded?.(question.id, key, res.isCorrect);
+      onAttemptRecorded?.(question.id, selectedOption, res.isCorrect);
     } catch {
       toast.error("Failed to evaluate answer. Please try again.");
-      setSelectedOption(question.attempt?.selected ?? null);
     } finally {
       setIsSubmitting(false);
     }
@@ -128,11 +161,12 @@ export function QuestionCard({
         data: { questionId: question.id, selected: pendingOption },
       });
       setSelectedOption(pendingOption);
-      setResult({
+      setSubmittedResult({
         isCorrect: res.isCorrect,
         correctOption: res.correctOption,
         explanation: res.explanation,
       });
+      setShowAnswer(true);
       setIsChangingAnswer(false);
       setPendingOption(null);
       onAttemptRecorded?.(question.id, pendingOption, res.isCorrect);
@@ -176,23 +210,24 @@ export function QuestionCard({
   function handleCopyQuestion() {
     const optionsText = question.options.map((o) => `${o.key}. ${o.text}`).join("\n");
     const fullText = `Question ${question.number}\n${question.prompt}\n\n${optionsText}`;
-
     navigator.clipboard
       .writeText(fullText)
       .then(() => toast.success("Question copied to clipboard"))
       .catch(() => toast.error("Could not copy to clipboard"));
   }
 
-  const isLocked = Boolean(result) && !isChangingAnswer;
-  const isAnswered = Boolean(selectedOption) || Boolean(result);
-  const showExplanation = Boolean(result?.explanation) || forceReveal;
+  // ── Derived display flags ──────────────────────────────────────────────────
+  const isLocked = Boolean(submittedResult) && !isChangingAnswer;
+  const showExplanation =
+    (showAnswer || forceReveal) &&
+    Boolean(submittedResult?.explanation ?? revealedData?.explanation);
 
   return (
     <article
       id={`question-${question.number}`}
       className={`rounded-2xl border bg-card p-5 shadow-sm transition-all sm:p-6 ${
-        result
-          ? result.isCorrect
+        submittedResult
+          ? submittedResult.isCorrect
             ? "border-emerald-500/30 dark:border-emerald-500/20"
             : "border-red-500/30 dark:border-red-500/20"
           : "border-border"
@@ -268,32 +303,52 @@ export function QuestionCard({
         ) : null}
       </div>
 
-      {/* Option List */}
+      {/* ── JAMB Radio-Ball Option List ───────────────────────────────────── */}
       <div className="mt-5 space-y-2.5">
         {question.options.map((option: Option) => {
           const isSelected = selectedOption === option.key;
           const isPending = isChangingAnswer && pendingOption === option.key;
-          const isCorrectAnswer = result?.correctOption === option.key;
-          const isWrongSelected = isSelected && result && !result.isCorrect && result.correctOption;
+          const isCorrectAnswer = submittedResult?.correctOption === option.key;
+          const isWrongSelected =
+            isSelected &&
+            submittedResult &&
+            !submittedResult.isCorrect &&
+            submittedResult.correctOption;
 
-          let btnStyles = "border-border bg-card hover:bg-secondary/60 text-foreground";
-          let badgeStyles = "bg-secondary text-muted-foreground";
+          // ── Colour scheme ─────────────────────────────────────────────────
+          let outerStyles = "border-border bg-card hover:bg-secondary/60 text-foreground";
+          let radioStyles =
+            "border-2 border-muted-foreground/40 bg-background group-hover:border-primary/50";
+          let radioDotVisible = false;
 
-          if (result) {
+          if (submittedResult && showAnswer) {
+            // After reveal: show correct (green) / wrong (red) / neutral
             if (isCorrectAnswer) {
-              btnStyles =
+              outerStyles =
                 "border-emerald-500/60 bg-emerald-500/10 text-emerald-950 dark:text-emerald-200 font-medium";
-              badgeStyles = "bg-emerald-600 text-white";
+              radioStyles = "border-emerald-500 bg-emerald-500";
+              radioDotVisible = true;
             } else if (isWrongSelected) {
-              btnStyles = "border-red-500/60 bg-red-500/10 text-red-950 dark:text-red-200";
-              badgeStyles = "bg-red-600 text-white";
+              outerStyles = "border-red-500/60 bg-red-500/10 text-red-950 dark:text-red-200";
+              radioStyles = "border-red-500 bg-red-500";
+              radioDotVisible = true;
             } else if (isSelected) {
-              btnStyles = "border-primary bg-primary/10 text-foreground";
-              badgeStyles = "bg-primary text-primary-foreground";
+              outerStyles = "border-primary/40 bg-primary/5 text-foreground";
+              radioStyles = "border-primary bg-primary";
+              radioDotVisible = true;
+            }
+          } else if (submittedResult && !showAnswer) {
+            // Submitted but answer panel hidden — show muted selected state
+            if (isSelected) {
+              outerStyles = "border-primary/40 bg-primary/5 text-foreground";
+              radioStyles = "border-primary bg-primary/40";
+              radioDotVisible = true;
             }
           } else if (isSelected || isPending) {
-            btnStyles = "border-primary bg-primary/10 text-foreground font-medium";
-            badgeStyles = "bg-primary text-primary-foreground";
+            // Not yet submitted — highlight the student's radio pick
+            outerStyles = "border-primary bg-primary/10 text-foreground font-medium";
+            radioStyles = "border-primary bg-primary";
+            radioDotVisible = true;
           }
 
           return (
@@ -302,17 +357,28 @@ export function QuestionCard({
               type="button"
               disabled={isSubmitting || (isLocked && !isChangingAnswer)}
               onClick={() => handleSelectOption(option.key)}
-              className={`flex w-full items-start gap-3 rounded-xl border p-3.5 text-left text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${btnStyles} ${
+              className={`group flex w-full items-center gap-3 rounded-xl border p-3.5 text-left text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${outerStyles} ${
                 isLocked ? "cursor-default" : "cursor-pointer active:scale-[0.99]"
               }`}
             >
+              {/* JAMB-style radio circle */}
               <span
-                className={`flex size-6 shrink-0 items-center justify-center rounded-lg text-xs font-bold transition-colors ${badgeStyles}`}
+                className={`flex size-5 shrink-0 items-center justify-center rounded-full transition-all ${radioStyles}`}
               >
+                {radioDotVisible ? (
+                  <span className="size-2 rounded-full bg-white opacity-90" />
+                ) : null}
+              </span>
+
+              {/* Option letter badge */}
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-secondary/80 font-mono text-xs font-bold text-muted-foreground">
                 {option.key}
               </span>
-              <MathText content={option.text} className="mt-0.5 flex-1 leading-snug" />
-              {isCorrectAnswer ? (
+
+              <MathText content={option.text} className="flex-1 leading-snug" />
+
+              {/* Correct tick shown after answer reveal */}
+              {submittedResult && showAnswer && isCorrectAnswer ? (
                 <Check className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
               ) : null}
             </button>
@@ -320,18 +386,37 @@ export function QuestionCard({
         })}
       </div>
 
-      {/* Immediate Result Feedback Banner */}
-      {result ? (
+      {/* ── Submit / View Answer Action Bar (shown when option selected but not yet submitted) ── */}
+      {!submittedResult && selectedOption ? (
+        <div className="mt-4 flex items-center gap-3">
+          <Button
+            type="button"
+            disabled={isSubmitting}
+            onClick={handleSubmitAnswer}
+            className="h-9 gap-2 text-sm"
+          >
+            {isSubmitting ? <Loader2 className="size-3.5 animate-spin" /> : null}
+            Submit Answer
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            Selected: <strong>{selectedOption}</strong> · You can change your selection before
+            submitting.
+          </span>
+        </div>
+      ) : null}
+
+      {/* ── Post-Submission Result Banner ────────────────────────────────── */}
+      {submittedResult ? (
         <div
           className={`mt-4 rounded-xl border p-3.5 text-sm transition-all ${
-            result.isCorrect
+            submittedResult.isCorrect
               ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-200"
               : "border-red-500/30 bg-red-500/10 text-red-900 dark:text-red-200"
           }`}
         >
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 font-semibold">
-              {result.isCorrect ? (
+              {submittedResult.isCorrect ? (
                 <>
                   <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />
                   <span>Correct ✓</span>
@@ -344,17 +429,36 @@ export function QuestionCard({
               )}
             </div>
 
-            {/* Deliberate Change Answer Action */}
-            {!isChangingAnswer ? (
+            <div className="flex items-center gap-2">
+              {/* View / Hide Answer toggle */}
               <button
                 type="button"
-                onClick={() => setIsChangingAnswer(true)}
-                className="inline-flex items-center gap-1 text-xs font-medium underline-offset-4 hover:underline opacity-80 hover:opacity-100"
+                onClick={() => setShowAnswer((p) => !p)}
+                className="inline-flex items-center gap-1 rounded-lg bg-background/60 px-2.5 py-1 text-xs font-medium hover:bg-background transition-colors"
               >
-                <Edit3 className="size-3" />
-                Change answer
+                {showAnswer ? (
+                  <>
+                    <EyeOff className="size-3" /> Hide Answer
+                  </>
+                ) : (
+                  <>
+                    <Eye className="size-3" /> View Answer
+                  </>
+                )}
               </button>
-            ) : null}
+
+              {/* Change Answer */}
+              {!isChangingAnswer ? (
+                <button
+                  type="button"
+                  onClick={() => setIsChangingAnswer(true)}
+                  className="inline-flex items-center gap-1 text-xs font-medium underline-offset-4 hover:underline opacity-80 hover:opacity-100"
+                >
+                  <Edit3 className="size-3" />
+                  Change
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
@@ -363,14 +467,17 @@ export function QuestionCard({
                 Your answer: <span className="font-bold">{selectedOption}</span>
               </p>
             ) : null}
-            {result.correctOption ? (
+            {showAnswer && submittedResult.correctOption ? (
               <p>
-                Correct answer: <span className="font-bold">{result.correctOption}</span>
+                Correct answer:{" "}
+                <span className="font-bold text-emerald-700 dark:text-emerald-300">
+                  {submittedResult.correctOption}
+                </span>
               </p>
             ) : null}
           </div>
 
-          {/* Change Answer Confirmation prompt */}
+          {/* Change Answer Confirmation */}
           {isChangingAnswer ? (
             <div className="mt-3 border-t border-border/40 pt-3">
               <p className="text-xs font-medium">Select a new option above, then click confirm:</p>
@@ -402,19 +509,30 @@ export function QuestionCard({
         </div>
       ) : null}
 
-      {/* Explanation Section */}
-      {showExplanation && result?.explanation ? (
+      {/* ── Explanation Section ────────────────────────────────────────────── */}
+      {showExplanation ? (
         <div className="mt-4 rounded-xl border border-border/80 bg-secondary/30 p-4 text-sm">
           <p className="font-semibold text-xs uppercase tracking-wider text-muted-foreground">
             Explanation
           </p>
           <div className="mt-2 text-foreground leading-relaxed whitespace-pre-wrap">
-            <MathText content={result.explanation} />
+            <MathText content={submittedResult?.explanation ?? revealedData?.explanation ?? ""} />
           </div>
         </div>
       ) : null}
 
-      {/* Personal Note Editor */}
+      {/* ── Alert for missing explanation ────────────────────────────────── */}
+      {submittedResult &&
+      showAnswer &&
+      !submittedResult.explanation &&
+      !revealedData?.explanation ? (
+        <div className="mt-3 flex items-center gap-2 rounded-xl border border-border/60 bg-secondary/20 px-4 py-2.5 text-xs text-muted-foreground">
+          <AlertTriangle className="size-3.5 shrink-0" />
+          No explanation available for this question yet.
+        </div>
+      ) : null}
+
+      {/* ── Personal Note Editor ──────────────────────────────────────────── */}
       {noteOpen ? (
         <div className="mt-4 rounded-xl border border-border bg-secondary/20 p-4">
           <div className="flex items-center justify-between gap-2">

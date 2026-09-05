@@ -386,6 +386,142 @@ export const getQuestionPage = createServerFn({ method: "GET" })
     };
   });
 
+/** One page of questions spanning multiple topics (combined, shuffled by sort_order + created_at). */
+export const getMultiTopicQuestionPage = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { subject: string; topicSlugs: string[]; page?: number }) => {
+    if (!input?.subject) throw new Error("Missing subject");
+    if (!Array.isArray(input?.topicSlugs) || input.topicSlugs.length === 0)
+      throw new Error("Select at least one topic");
+    return {
+      subject: input.subject,
+      topicSlugs: input.topicSlugs.slice(0, 10), // max 10 topics
+      page: Math.max(1, Math.floor(Number(input.page) || 1)),
+    };
+  })
+  .handler(async ({ data, context }) => {
+    await requireAccess(context.supabase as never, context.userId);
+    const db = await admin();
+
+    const subject = await db
+      .from("practice_subjects")
+      .select("id, slug, name")
+      .eq("slug", data.subject)
+      .maybeSingle();
+    if (!subject.data) throw new Error("Subject not found");
+
+    // Resolve topic slugs → topic rows
+    const topicsRes = await db
+      .from("practice_topics")
+      .select("id, slug, name")
+      .eq("subject_id", subject.data.id)
+      .in("slug", data.topicSlugs);
+
+    const topicRows = (topicsRes.data ?? []) as { id: string; slug: string; name: string }[];
+    if (topicRows.length === 0) throw new Error("No matching topics found");
+
+    const topicIds = topicRows.map((t) => t.id);
+    const topicById = new Map(topicRows.map((t) => [t.id, t]));
+
+    const from = (data.page - 1) * PAGE_SIZE;
+
+    type PageQuestionRow = {
+      id: string;
+      prompt: string;
+      option_a: string;
+      option_b: string;
+      option_c: string;
+      option_d: string;
+      image_url: string | null;
+      topic_id: string;
+    };
+
+    const rows = await db
+      .from("questions")
+      .select("id, prompt, option_a, option_b, option_c, option_d, image_url, topic_id", {
+        count: "exact",
+      })
+      .in("topic_id", topicIds)
+      .eq("status", "published")
+      .order("sort_order")
+      .order("created_at")
+      .range(from, from + PAGE_SIZE - 1);
+
+    const ids = (rows.data ?? []).map((q: { id: string }) => q.id);
+
+    const [bookmarks, notes, attempts] = await Promise.all([
+      context.supabase
+        .from("question_bookmarks")
+        .select("question_id")
+        .eq("user_id", context.userId)
+        .in("question_id", ids),
+      context.supabase
+        .from("question_notes")
+        .select("question_id, body")
+        .eq("user_id", context.userId)
+        .in("question_id", ids),
+      context.supabase
+        .from("question_attempts")
+        .select("question_id, selected_option, is_correct")
+        .eq("user_id", context.userId)
+        .in("question_id", ids),
+    ]);
+
+    const bookmarkedSet = new Set(
+      ((bookmarks.data ?? []) as { question_id: string }[]).map((b) => b.question_id),
+    );
+    const noteBy = new Map(
+      ((notes.data ?? []) as { question_id: string; body: string }[]).map((n) => [
+        n.question_id,
+        n.body,
+      ]),
+    );
+    const attemptBy = new Map(
+      (
+        (attempts.data ?? []) as {
+          question_id: string;
+          selected_option: string;
+          is_correct: boolean;
+        }[]
+      ).map((a) => [a.question_id, { selected: a.selected_option, isCorrect: a.is_correct }]),
+    );
+
+    const total = rows.count ?? 0;
+
+    const questions: (StudentQuestion & { topicName: string; topicSlug: string })[] = (
+      (rows.data as unknown as PageQuestionRow[]) ?? []
+    ).map((q, i) => ({
+      id: q.id,
+      number: from + i + 1,
+      prompt: q.prompt,
+      options: [
+        { key: "A" as const, text: q.option_a },
+        { key: "B" as const, text: q.option_b },
+        { key: "C" as const, text: q.option_c },
+        { key: "D" as const, text: q.option_d },
+      ],
+      imageUrl: q.image_url ?? null,
+      bookmarked: bookmarkedSet.has(q.id),
+      note: noteBy.get(q.id) ?? "",
+      attempt: attemptBy.get(q.id) ?? null,
+      topicName: topicById.get(q.topic_id)?.name ?? "",
+      topicSlug: topicById.get(q.topic_id)?.slug ?? "",
+    }));
+
+    const topicNames = topicRows.map((t) => t.name);
+
+    return {
+      subject: { slug: subject.data.slug, name: subject.data.name },
+      topics: topicRows.map((t) => ({ slug: t.slug, name: t.name })),
+      topicNames,
+      page: data.page,
+      pageSize: PAGE_SIZE,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
+      questions,
+    };
+  });
+
 /** Answer one question. The correct option is only returned after the student commits an answer. */
 export const submitAnswer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

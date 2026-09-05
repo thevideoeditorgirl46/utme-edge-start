@@ -17,6 +17,8 @@ import { getPracticeAccess } from "@/lib/edge-practice.functions";
 type PracticeSearchParams = {
   subject?: string | undefined;
   topic?: string | undefined;
+  /** Comma-separated list of topic slugs for multi-topic mode */
+  topics?: string | undefined;
   page?: number | undefined;
   tab?: "practice" | "saved" | "progress" | undefined;
 };
@@ -27,6 +29,8 @@ export const Route = createFileRoute("/practice")({
       subject:
         typeof search["subject"] === "string" && search["subject"] ? search["subject"] : undefined,
       topic: typeof search["topic"] === "string" && search["topic"] ? search["topic"] : undefined,
+      topics:
+        typeof search["topics"] === "string" && search["topics"] ? search["topics"] : undefined,
       page: Number(search["page"]) > 0 ? Math.floor(Number(search["page"])) : undefined,
       tab: ["practice", "saved", "progress"].includes(search["tab"] as string)
         ? (search["tab"] as "practice" | "saved" | "progress")
@@ -62,6 +66,16 @@ function PracticePage() {
 
   const subject = search["subject"];
   const topic = search["topic"];
+  // Decode multi-topic slugs from comma-separated string
+  const topicsParam = search["topics"];
+  const topicSlugs: string[] = topicsParam
+    ? topicsParam
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+  const isMultiTopic = topicSlugs.length > 1;
+
   const page = search["page"] || 1;
   const tab = search["tab"] || "practice";
 
@@ -97,6 +111,7 @@ function PracticePage() {
       search: {
         subject: selectedSubject,
         topic: undefined,
+        topics: undefined,
         page: 1,
         tab: "practice",
       },
@@ -109,6 +124,20 @@ function PracticePage() {
       search: {
         subject,
         topic: selectedTopic,
+        topics: undefined,
+        page: 1,
+        tab: "practice",
+      },
+    });
+  }
+
+  function handleStartMultiTopic(slugs: string[]) {
+    navigate({
+      to: "/practice",
+      search: {
+        subject,
+        topic: undefined,
+        topics: slugs.join(","),
         page: 1,
         tab: "practice",
       },
@@ -125,6 +154,7 @@ function PracticePage() {
       search: {
         subject: undefined,
         topic: undefined,
+        topics: undefined,
         page: 1,
         tab: "practice",
       },
@@ -137,6 +167,7 @@ function PracticePage() {
       search: {
         subject,
         topic: undefined,
+        topics: undefined,
         page: 1,
         tab: "practice",
       },
@@ -149,11 +180,15 @@ function PracticePage() {
       search: {
         subject: undefined,
         topic: undefined,
+        topics: undefined,
         page: 1,
         tab: nextTab,
       },
     });
   }
+
+  // Determine which main view to render
+  const showPracticeEngine = subject && (topic || isMultiTopic);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -177,7 +212,7 @@ function PracticePage() {
             onGoToTopic={(sub, top) => {
               navigate({
                 to: "/practice",
-                search: { subject: sub, topic: top, page: 1, tab: "practice" },
+                search: { subject: sub, topic: top, topics: undefined, page: 1, tab: "practice" },
               });
             }}
           />
@@ -187,18 +222,30 @@ function PracticePage() {
               handleTabChange("practice");
             }}
           />
-        ) : subject && topic ? (
-          <PracticeEngine
-            subjectSlug={subject}
-            topicSlug={topic}
-            currentPage={page}
-            onPageChange={handlePageChange}
-            onBackToTopics={handleBackToTopics}
-          />
+        ) : showPracticeEngine ? (
+          isMultiTopic ? (
+            <PracticeEngine
+              mode="multi"
+              subjectSlug={subject!}
+              topicSlugs={topicSlugs}
+              currentPage={page}
+              onPageChange={handlePageChange}
+              onBackToTopics={handleBackToTopics}
+            />
+          ) : (
+            <PracticeEngine
+              subjectSlug={subject!}
+              topicSlug={topic!}
+              currentPage={page}
+              onPageChange={handlePageChange}
+              onBackToTopics={handleBackToTopics}
+            />
+          )
         ) : subject ? (
           <TopicList
             subjectSlug={subject}
             onSelectTopic={handleSelectTopic}
+            onStartMultiTopic={handleStartMultiTopic}
             onBackToSubjects={handleBackToSubjects}
           />
         ) : (

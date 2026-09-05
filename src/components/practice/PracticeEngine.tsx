@@ -1,5 +1,4 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft,
@@ -9,6 +8,7 @@ import {
   Loader2,
   RefreshCw,
   Sparkles,
+  Tag,
   WifiOff,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -16,12 +16,18 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import type { StudentQuestion } from "@/lib/edge-practice.functions";
-import { getQuestionPage, revealAnswers } from "@/lib/edge-practice.functions";
+import {
+  getMultiTopicQuestionPage,
+  getQuestionPage,
+  revealAnswers,
+} from "@/lib/edge-practice.functions";
 
 import { getCachedData, setCachedData } from "./offline-cache";
 import { QuestionCard } from "./QuestionCard";
 
-interface PracticeEngineProps {
+// ── Single-topic mode props ────────────────────────────────────────────────
+interface SingleTopicProps {
+  mode?: "single";
   subjectSlug: string;
   topicSlug: string;
   currentPage: number;
@@ -29,15 +35,25 @@ interface PracticeEngineProps {
   onBackToTopics: () => void;
 }
 
-export function PracticeEngine({
-  subjectSlug,
-  topicSlug,
-  currentPage,
-  onPageChange,
-  onBackToTopics,
-}: PracticeEngineProps) {
+// ── Multi-topic mode props ─────────────────────────────────────────────────
+interface MultiTopicProps {
+  mode: "multi";
+  subjectSlug: string;
+  topicSlugs: string[];
+  currentPage: number;
+  onPageChange: (newPage: number) => void;
+  onBackToTopics: () => void;
+}
+
+type PracticeEngineProps = SingleTopicProps | MultiTopicProps;
+
+export function PracticeEngine(props: PracticeEngineProps) {
+  const { subjectSlug, currentPage, onPageChange, onBackToTopics } = props;
+  const isMulti = props.mode === "multi";
+
   const queryClient = useQueryClient();
-  const fetchPage = useServerFn(getQuestionPage);
+  const fetchSinglePage = useServerFn(getQuestionPage);
+  const fetchMultiPage = useServerFn(getMultiTopicQuestionPage);
   const fetchExplanations = useServerFn(revealAnswers);
 
   const [allRevealed, setAllRevealed] = useState(false);
@@ -46,21 +62,47 @@ export function PracticeEngine({
     Record<string, { correctOption: string; explanation: string | null }>
   >({});
 
-  const cacheKey = `page_${subjectSlug}_${topicSlug}_${currentPage}`;
+  // Build a stable cache key
+  const cacheKey = isMulti
+    ? `page_${subjectSlug}_multi_${(props as MultiTopicProps).topicSlugs.sort().join("-")}_${currentPage}`
+    : `page_${subjectSlug}_${(props as SingleTopicProps).topicSlug}_${currentPage}`;
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["practice-page", subjectSlug, topicSlug, currentPage],
+  // Build a stable query key
+  const queryKey = isMulti
+    ? [
+        "practice-page-multi",
+        subjectSlug,
+        (props as MultiTopicProps).topicSlugs.slice().sort().join(","),
+        currentPage,
+      ]
+    : ["practice-page", subjectSlug, (props as SingleTopicProps).topicSlug, currentPage];
+
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey,
     queryFn: async () => {
       try {
-        const res = await fetchPage({
-          data: { subject: subjectSlug, topic: topicSlug, page: currentPage },
-        });
-        // Cache for offline resilience
+        let res;
+        if (isMulti) {
+          res = await fetchMultiPage({
+            data: {
+              subject: subjectSlug,
+              topicSlugs: (props as MultiTopicProps).topicSlugs,
+              page: currentPage,
+            },
+          });
+        } else {
+          res = await fetchSinglePage({
+            data: {
+              subject: subjectSlug,
+              topic: (props as SingleTopicProps).topicSlug,
+              page: currentPage,
+            },
+          });
+        }
         setCachedData(cacheKey, res);
         return res;
       } catch (err) {
-        // Attempt offline cache retrieval
-        const cached = getCachedData<Awaited<ReturnType<typeof fetchPage>>>(cacheKey);
+        const cached = getCachedData<typeof data>(cacheKey);
         if (cached) {
           toast.info("Offline mode: viewing previously loaded questions");
           return cached;
@@ -68,35 +110,51 @@ export function PracticeEngine({
         throw err;
       }
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    staleTime: 1000 * 60 * 5,
   });
 
-  // Reset revealed state when page changes
+  // Reset revealed state when page / topic changes
   useEffect(() => {
     setAllRevealed(false);
     setRevealedMap({});
-  }, [currentPage, topicSlug, subjectSlug]);
+  }, [currentPage, cacheKey]);
 
-  // Prefetch next page if available
+  // Prefetch next page
   useEffect(() => {
     if (data && currentPage < data.totalPages) {
       const nextPage = currentPage + 1;
-      const nextCacheKey = `page_${subjectSlug}_${topicSlug}_${nextPage}`;
+      const nextCacheKey = cacheKey.replace(`_${currentPage}`, `_${nextPage}`);
+      const nextQueryKey = [...queryKey.slice(0, -1), nextPage];
+
       void queryClient.prefetchQuery({
-        queryKey: ["practice-page", subjectSlug, topicSlug, nextPage],
+        queryKey: nextQueryKey,
         queryFn: async () => {
-          const res = await fetchPage({
-            data: { subject: subjectSlug, topic: topicSlug, page: nextPage },
-          });
+          let res;
+          if (isMulti) {
+            res = await fetchMultiPage({
+              data: {
+                subject: subjectSlug,
+                topicSlugs: (props as MultiTopicProps).topicSlugs,
+                page: nextPage,
+              },
+            });
+          } else {
+            res = await fetchSinglePage({
+              data: {
+                subject: subjectSlug,
+                topic: (props as SingleTopicProps).topicSlug,
+                page: nextPage,
+              },
+            });
+          }
           setCachedData(nextCacheKey, res);
           return res;
         },
         staleTime: 1000 * 60 * 5,
       });
     }
-  }, [data, currentPage, subjectSlug, topicSlug, fetchPage, queryClient]);
+  }, [data, currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Handle View All Explanations
   async function handleViewAllExplanations() {
     if (!data?.questions?.length) return;
     setIsRevealingAll(true);
@@ -161,9 +219,18 @@ export function PracticeEngine({
     );
   }
 
-  const { subject, topic, total, totalPages, questions, pageSize } = data;
+  const { subject, total, totalPages, questions, pageSize } = data;
   const startNumber = (currentPage - 1) * pageSize + 1;
   const endNumber = Math.min(currentPage * pageSize, total);
+
+  // For multi-topic: build a label showing selected topic names
+  const practiceTitle = isMulti
+    ? `Mixed Practice · ${(data as { topicNames: string[] }).topicNames?.join(", ") ?? "Multiple Topics"}`
+    : ((data as { topic: { name: string } }).topic?.name ?? "Practice");
+
+  const practiceSub = isMulti
+    ? `${(data as { topicNames: string[] }).topicNames?.length ?? 0} topics combined`
+    : undefined;
 
   return (
     <div className="mx-auto w-full max-w-3xl pb-16">
@@ -181,19 +248,27 @@ export function PracticeEngine({
           <span>{subject.name}</span>
         </button>
         <span>›</span>
-        <span className="font-semibold text-foreground">{topic.name}</span>
+        <span className="font-semibold text-foreground truncate max-w-[200px] sm:max-w-none">
+          {practiceTitle}
+        </span>
       </nav>
 
       {/* Title & Stats */}
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl font-extrabold text-foreground sm:text-3xl">
-            {topic.name}
+            {practiceTitle}
           </h1>
+          {practiceSub ? (
+            <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+              <Tag className="size-3" />
+              {practiceSub}
+            </p>
+          ) : null}
           <p className="mt-1 text-xs text-muted-foreground">
             {total > 0
               ? `Questions ${startNumber}–${endNumber} of ${total}`
-              : "No questions published yet in this topic."}
+              : "No questions published yet in this selection."}
           </p>
         </div>
 
@@ -216,11 +291,26 @@ export function PracticeEngine({
         ) : null}
       </div>
 
+      {/* Multi-topic topic-name chip strip */}
+      {isMulti && (data as { topicNames: string[] }).topicNames?.length ? (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {(data as { topicNames: string[] }).topicNames.map((name) => (
+            <span
+              key={name}
+              className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground"
+            >
+              <Sparkles className="size-3 text-primary/60" />
+              {name}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
       {/* Question List */}
       {questions.length === 0 ? (
         <div className="mt-8 rounded-2xl border border-border bg-card p-8 text-center">
           <p className="text-sm text-muted-foreground">
-            Practice questions for {topic.name} are currently being prepared by the NET content
+            Practice questions for this selection are currently being prepared by the NET content
             team.
           </p>
           <Button onClick={onBackToTopics} className="mt-4">
@@ -229,13 +319,23 @@ export function PracticeEngine({
         </div>
       ) : (
         <div className="mt-6 space-y-6">
-          {questions.map((q: StudentQuestion) => (
-            <QuestionCard
-              key={q.id}
-              question={q}
-              forceReveal={allRevealed}
-              revealedData={revealedMap[q.id]}
-            />
+          {questions.map((q: StudentQuestion & { topicName?: string }) => (
+            <div key={q.id}>
+              {/* Per-question topic badge in multi mode */}
+              {isMulti && q.topicName ? (
+                <div className="mb-2 flex items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                    <Tag className="size-3" />
+                    {q.topicName}
+                  </span>
+                </div>
+              ) : null}
+              <QuestionCard
+                question={q}
+                forceReveal={allRevealed}
+                revealedData={revealedMap[q.id]}
+              />
+            </div>
           ))}
         </div>
       )}
