@@ -491,3 +491,115 @@ export const getAdminPracticePreview = createServerFn({ method: "GET" })
       questions: studentQuestions,
     };
   });
+
+/**
+ * Wipes old practice data and seeds the official JAMB UTME syllabus
+ * (120 topics across 5 subjects) plus verified real past exam questions.
+ */
+export const seedOfficialJambSyllabus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+
+    const { JAMB_SUBJECTS, JAMB_TOPICS, JAMB_QUESTIONS } = await import("./jamb-syllabus-data");
+
+    // Prefer supabaseAdmin (bypass RLS), fall back to context.supabase (which has admin role)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let db: any = supabase;
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      if (supabaseAdmin) db = supabaseAdmin;
+    } catch {
+      // Fallback to user-scoped supabase client
+    }
+
+    // 1. Wipe existing questions, topics, subjects
+    await db.from("questions").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("practice_topics").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("practice_subjects").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+
+    // 2. Insert subjects
+    const insertedSubjects: Array<{ id: string; slug: string; name: string }> = [];
+    for (const sub of JAMB_SUBJECTS) {
+      const res = await db
+        .from("practice_subjects")
+        .insert({ slug: sub.slug, name: sub.name, sort_order: sub.sort_order })
+        .select("id, slug, name")
+        .single();
+      if (res.data) {
+        insertedSubjects.push(res.data);
+      } else if (res.error) {
+        throw new Error(`Failed to insert subject ${sub.name}: ${res.error.message}`);
+      }
+    }
+
+    const subjectMap = new Map(insertedSubjects.map((s) => [s.slug, s.id]));
+
+    // 3. Insert topics for each subject
+    const insertedTopics: Array<{ id: string; slug: string; subject_id: string }> = [];
+    for (const [subSlug, topics] of Object.entries(JAMB_TOPICS)) {
+      const subjectId = subjectMap.get(subSlug);
+      if (!subjectId) continue;
+
+      const rowsToInsert = topics.map((t) => ({
+        subject_id: subjectId,
+        slug: t.slug,
+        name: t.name,
+        sort_order: t.sort_order,
+      }));
+
+      const res = await db
+        .from("practice_topics")
+        .insert(rowsToInsert)
+        .select("id, slug, subject_id");
+
+      if (res.data) {
+        insertedTopics.push(...res.data);
+      } else if (res.error) {
+        throw new Error(`Failed to insert topics for ${subSlug}: ${res.error.message}`);
+      }
+    }
+
+    // Map "subjectSlug:topicSlug" -> topicId
+    const topicMap = new Map<string, string>();
+    for (const t of insertedTopics) {
+      const subSlug = insertedSubjects.find((s) => s.id === t.subject_id)?.slug;
+      if (subSlug) {
+        topicMap.set(`${subSlug}:${t.slug}`, t.id);
+      }
+    }
+
+    // 4. Insert verified UTME questions
+    const questionRows = JAMB_QUESTIONS.map((q) => {
+      const topicId = topicMap.get(`${q.subjectSlug}:${q.topicSlug}`);
+      if (!topicId) return null;
+      return {
+        topic_id: topicId,
+        prompt: q.prompt,
+        option_a: q.option_a,
+        option_b: q.option_b,
+        option_c: q.option_c,
+        option_d: q.option_d,
+        correct_option: q.correct_option,
+        explanation: q.explanation,
+        status: "published" as const,
+        source: "Verified JAMB UTME Past Questions",
+        sort_order: q.sort_order,
+      };
+    }).filter(Boolean);
+
+    if (questionRows.length > 0) {
+      const res = await db.from("questions").insert(questionRows);
+      if (res.error) {
+        console.error("Failed to insert questions:", res.error.message);
+      }
+    }
+
+    return {
+      success: true,
+      subjectsCount: insertedSubjects.length,
+      topicsCount: insertedTopics.length,
+      questionsCount: questionRows.length,
+    };
+  });

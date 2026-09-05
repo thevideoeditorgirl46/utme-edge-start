@@ -313,7 +313,6 @@ export function PracticeEngine(props: PracticeEngineProps) {
           </div>
         ) : null}
 
-
         {total > 0 ? (
           <Button
             type="button"
@@ -378,7 +377,6 @@ export function PracticeEngine(props: PracticeEngineProps) {
                 revealedData={revealedMap[q.id]}
                 onScored={handleScored}
               />
-
             </div>
           ))}
         </div>

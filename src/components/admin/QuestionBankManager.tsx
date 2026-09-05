@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  AlertTriangle,
   Archive,
   Check,
   CheckCircle,
@@ -15,6 +16,7 @@ import {
   Sparkles,
   UploadCloud,
   XCircle,
+  Zap,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -24,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -42,6 +45,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { AdminQuestionItem } from "@/lib/practice-admin.functions";
 import {
   getAdminQuestions,
+  seedOfficialJambSyllabus,
   updateAdminQuestionStatus,
   upsertAdminQuestion,
 } from "@/lib/practice-admin.functions";
@@ -69,8 +73,10 @@ export function QuestionBankManager() {
   const fetchQuestions = useServerFn(getAdminQuestions);
   const updateStatus = useServerFn(updateAdminQuestionStatus);
   const saveQuestion = useServerFn(upsertAdminQuestion);
+  const seedSyllabus = useServerFn(seedOfficialJambSyllabus);
 
   const [isBulkOpen, setIsBulkOpen] = useState(false);
+  const [isConfirmSeedOpen, setIsConfirmSeedOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
@@ -106,6 +112,21 @@ export function QuestionBankManager() {
           search: searchTerm || undefined,
         },
       }),
+  });
+
+  const seedMutation = useMutation({
+    mutationFn: () => seedSyllabus({ data: {} }),
+    onSuccess: (res) => {
+      toast.success(
+        `🎉 Successfully applied official JAMB syllabus! (${res.subjectsCount} subjects, ${res.topicsCount} topics, ${res.questionsCount} questions)`,
+        { duration: 6000 },
+      );
+      setIsConfirmSeedOpen(false);
+      void queryClient.invalidateQueries({ queryKey: ["admin-questions"] });
+      void queryClient.invalidateQueries({ queryKey: ["practice-topics"] });
+      void queryClient.invalidateQueries({ queryKey: ["practice-subjects"] });
+    },
+    onError: (err: Error) => toast.error(`Failed to apply JAMB seed: ${err.message}`),
   });
 
   const statusMutation = useMutation({
@@ -306,6 +327,16 @@ export function QuestionBankManager() {
               className="h-9 w-44 pl-8 text-xs sm:w-56"
             />
           </div>
+
+          <Button
+            onClick={() => setIsConfirmSeedOpen(true)}
+            variant="outline"
+            size="sm"
+            className="h-9 gap-1.5 text-xs border-amber-500/40 text-amber-600 hover:bg-amber-500/10 dark:text-amber-400"
+          >
+            <Zap className="size-3.5" />
+            Seed JAMB Syllabus
+          </Button>
 
           <Button
             onClick={() => setIsBulkOpen((prev) => !prev)}
@@ -725,6 +756,68 @@ export function QuestionBankManager() {
             <Button onClick={handleSave} disabled={saveMutation.isPending}>
               {saveMutation.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
               {editingQuestion?.id ? "Save Revision" : "Create Question"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Seed Official JAMB Syllabus Dialog */}
+      <Dialog open={isConfirmSeedOpen} onOpenChange={setIsConfirmSeedOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="size-5" />
+              Apply Official JAMB UTME Syllabus
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground pt-1 leading-relaxed">
+              This action will reset the question bank and seed all 5 core UTME subjects with their{" "}
+              <strong>exact official JAMB syllabus structure</strong>:
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-xl border border-border bg-secondary/30 p-3 text-xs space-y-1 text-muted-foreground">
+            <p>
+              • <strong>Physics:</strong> 39 verified syllabus topics
+            </p>
+            <p>
+              • <strong>Chemistry:</strong> 18 verified syllabus topics
+            </p>
+            <p>
+              • <strong>Biology:</strong> 23 verified syllabus topics
+            </p>
+            <p>
+              • <strong>Mathematics:</strong> 23 verified syllabus topics
+            </p>
+            <p>
+              • <strong>Use of English:</strong> 17 verified syllabus topics
+            </p>
+            <p className="pt-1.5 text-foreground font-medium">
+              ✓ Includes verified real UTME past questions with LaTeX-formatted explanations.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsConfirmSeedOpen(false)}
+              disabled={seedMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-2 bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={() => seedMutation.mutate()}
+              disabled={seedMutation.isPending}
+            >
+              {seedMutation.isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Zap className="size-3.5" />
+              )}
+              {seedMutation.isPending ? "Seeding Database..." : "Confirm & Apply Seed"}
             </Button>
           </DialogFooter>
         </DialogContent>

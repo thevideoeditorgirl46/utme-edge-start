@@ -122,7 +122,6 @@ export function QuestionCard({
     }
   }, [submittedResult, showAnswer, forceReveal, selectedOption]); // eslint-disable-line react-hooks/exhaustive-deps
 
-
   // ── Handlers ────────────────────────────────────────────────────────────────
 
   /** JAMB click = radio highlight only. No server call yet. */
