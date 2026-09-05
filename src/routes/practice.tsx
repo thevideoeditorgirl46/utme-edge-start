@@ -8,6 +8,7 @@ import { PracticeEngine } from "@/components/practice/PracticeEngine";
 import { ProgressView } from "@/components/practice/ProgressView";
 import { SavedQuestions } from "@/components/practice/SavedQuestions";
 import { SubjectList } from "@/components/practice/SubjectList";
+import { TopicList } from "@/components/practice/TopicList";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
 import { useAuth } from "@/hooks/useAuth";
