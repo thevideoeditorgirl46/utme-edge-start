@@ -14,20 +14,20 @@ import { useAuth } from "@/hooks/useAuth";
 import { getPracticeAccess } from "@/lib/edge-practice.functions";
 
 type PracticeSearchParams = {
-  subject?: string;
-  topic?: string;
-  page?: number;
-  tab?: "practice" | "saved" | "progress";
+  subject?: string | undefined;
+  topic?: string | undefined;
+  page?: number | undefined;
+  tab?: "practice" | "saved" | "progress" | undefined;
 };
 
 export const Route = createFileRoute("/practice")({
   validateSearch: (search: Record<string, unknown>): PracticeSearchParams => {
     return {
-      subject: typeof search.subject === "string" && search.subject ? search.subject : undefined,
-      topic: typeof search.topic === "string" && search.topic ? search.topic : undefined,
-      page: Number(search.page) > 0 ? Math.floor(Number(search.page)) : undefined,
-      tab: ["practice", "saved", "progress"].includes(search.tab as string)
-        ? (search.tab as "practice" | "saved" | "progress")
+      subject: typeof search["subject"] === "string" && search["subject"] ? search["subject"] : undefined,
+      topic: typeof search["topic"] === "string" && search["topic"] ? search["topic"] : undefined,
+      page: Number(search["page"]) > 0 ? Math.floor(Number(search["page"])) : undefined,
+      tab: ["practice", "saved", "progress"].includes(search["tab"] as string)
+        ? (search["tab"] as "practice" | "saved" | "progress")
         : undefined,
     };
   },
@@ -58,10 +58,10 @@ function PracticePage() {
   const queryClient = useQueryClient();
   const fetchAccess = useServerFn(getPracticeAccess);
 
-  const subject = search.subject;
-  const topic = search.topic;
-  const page = search.page || 1;
-  const tab = search.tab || "practice";
+  const subject = search["subject"];
+  const topic = search["topic"];
+  const page = search["page"] || 1;
+  const tab = search["tab"] || "practice";
 
   useEffect(() => {
     if (!loading && !user) {
