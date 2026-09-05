@@ -112,7 +112,7 @@ export function QuestionBankManager() {
 
   const saveMutation = useMutation({
     mutationFn: (input: {
-      id?: string;
+      id?: string | undefined;
       topic_id: string;
       prompt: string;
       option_a: string;
@@ -120,9 +120,9 @@ export function QuestionBankManager() {
       option_c: string;
       option_d: string;
       correct_option: "A" | "B" | "C" | "D";
-      explanation?: string;
-      source?: string;
-      status?: "draft" | "pending" | "approved" | "published" | "archived";
+      explanation?: string | undefined;
+      source?: string | undefined;
+      status?: "draft" | "pending" | "approved" | "published" | "archived" | undefined;
     }) => saveQuestion({ data: input }),
     onSuccess: () => {
       toast.success(editingQuestion?.id ? "Question updated" : "Question created");
@@ -164,10 +164,18 @@ export function QuestionBankManager() {
   }
 
   function handleSave() {
-    if (!formTopicId) return toast.error("Please select a topic");
-    if (!formPrompt.trim()) return toast.error("Please enter a question prompt");
-    if (!formOptionA.trim() || !formOptionB.trim())
-      return toast.error("Options A and B are required");
+    if (!formTopicId) {
+      toast.error("Please select a topic");
+      return;
+    }
+    if (!formPrompt.trim()) {
+      toast.error("Please enter a question prompt");
+      return;
+    }
+    if (!formOptionA.trim() || !formOptionB.trim()) {
+      toast.error("Options A and B are required");
+      return;
+    }
 
     saveMutation.mutate({
       id: editingQuestion?.id,

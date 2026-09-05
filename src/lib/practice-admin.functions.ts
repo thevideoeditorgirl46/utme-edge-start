@@ -30,7 +30,12 @@ export type AdminQuestionItem = {
 export const getAdminQuestions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input?: { subjectSlug?: string; topicSlug?: string; status?: string; search?: string }) =>
+    (input?: {
+      subjectSlug?: string | undefined;
+      topicSlug?: string | undefined;
+      status?: string | undefined;
+      search?: string | undefined;
+    }) =>
       input || {},
   )
   .handler(async ({ data, context }) => {
@@ -74,7 +79,7 @@ export const getAdminQuestions = createServerFn({ method: "GET" })
       .limit(200);
 
     if (data.status && data.status !== "all") {
-      query = query.eq("status", data.status);
+      query = query.eq("status", data.status as "draft" | "pending" | "approved" | "published" | "archived");
     }
 
     if (data.topicSlug) {
@@ -110,6 +115,9 @@ export const getAdminQuestions = createServerFn({ method: "GET" })
       created_at: string;
       updated_at: string;
     };
+
+    const { data: rows, error: rowsError } = await query;
+    if (rowsError) throw new Error(rowsError.message);
 
     let list: AdminQuestionItem[] = ((rows as unknown as QuestionDbRow[]) ?? []).map((q) => {
       const t = topicById.get(q.topic_id);
@@ -190,7 +198,7 @@ export const upsertAdminQuestion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     (input: {
-      id?: string;
+      id?: string | undefined;
       topic_id: string;
       prompt: string;
       option_a: string;
@@ -198,11 +206,11 @@ export const upsertAdminQuestion = createServerFn({ method: "POST" })
       option_c: string;
       option_d: string;
       correct_option: "A" | "B" | "C" | "D";
-      explanation?: string;
-      source?: string;
-      image_url?: string;
-      status?: "draft" | "pending" | "approved" | "published" | "archived";
-      sort_order?: number;
+      explanation?: string | undefined;
+      source?: string | undefined;
+      image_url?: string | undefined;
+      status?: "draft" | "pending" | "approved" | "published" | "archived" | undefined;
+      sort_order?: number | undefined;
     }) => {
       if (!input.topic_id) throw new Error("Please select a topic");
       if (!input.prompt?.trim()) throw new Error("Question text is required");
