@@ -28,6 +28,8 @@ interface QuestionCardProps {
   onAttemptRecorded?: (questionId: string, selected: string, isCorrect: boolean) => void;
   onBookmarkToggled?: (questionId: string, bookmarked: boolean) => void;
   onNoteSaved?: (questionId: string, body: string) => void;
+  /** Fired only once the student has actually viewed the answer for this question. */
+  onScored?: (questionId: string, isCorrect: boolean) => void;
 }
 
 export function QuestionCard({

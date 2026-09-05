@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Sparkles,
   Tag,
+  Trophy,
   WifiOff,
 } from "lucide-react";
 import { useEffect, useState } from "react";
