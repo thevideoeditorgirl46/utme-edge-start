@@ -148,6 +148,34 @@ export function PracticeEngine(props: PracticeEngineProps) {
     setScoreMap({});
   }, [currentPage, cacheKey]);
 
+  // Silently prefetch answers & explanations for the active page
+  // so student clicks on "View Answer" or "Submit Answer" respond in 0ms without server lag
+  useEffect(() => {
+    if (!data?.questions?.length) return;
+    const qIds = data.questions.map((q: StudentQuestion) => q.id);
+    let isMounted = true;
+
+    void fetchExplanations({ data: { questionIds: qIds } })
+      .then((res) => {
+        if (!isMounted || !res?.answers) return;
+        const nextMap: Record<string, { correctOption: string; explanation: string | null }> = {};
+        for (const item of res.answers) {
+          nextMap[item.questionId] = {
+            correctOption: item.correctOption,
+            explanation: item.explanation,
+          };
+        }
+        setRevealedMap((prev) => ({ ...nextMap, ...prev }));
+      })
+      .catch(() => {
+        // Silently ignore background prefetch errors; fallback is handled per-question on submit
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [data, fetchExplanations]);
+
   // Prefetch next page
   useEffect(() => {
     if (data && currentPage < data.totalPages) {

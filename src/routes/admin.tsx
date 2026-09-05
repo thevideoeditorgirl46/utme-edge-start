@@ -245,10 +245,11 @@ function AdminPage() {
             </TabsContent>
 
             <TabsContent value="students" className="mt-6 overflow-x-auto">
-              <table className="w-full min-w-[640px] text-left text-sm">
+              <table className="w-full min-w-[720px] text-left text-sm">
                 <thead className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
                   <tr>
-                    <th className="py-2">Student</th>
+                    <th className="py-2">Student ID</th>
+                    <th>Student</th>
                     <th>Email</th>
                     <th>Registered</th>
                     <th>Verified</th>
@@ -260,7 +261,10 @@ function AdminPage() {
                 <tbody>
                   {data.students.map((s) => (
                     <tr key={s.id} className="border-t border-border">
-                      <td className="py-2">{s.full_name}</td>
+                      <td className="py-2 font-mono text-xs font-semibold text-primary">
+                        {s.registration_id || s.id.slice(0, 8)}
+                      </td>
+                      <td>{s.full_name}</td>
                       <td>{s.email}</td>
                       <td>{new Date(s.created_at).toLocaleDateString()}</td>
                       <td>{s.verifiedPoints}</td>

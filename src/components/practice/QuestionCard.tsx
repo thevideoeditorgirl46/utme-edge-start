@@ -5,7 +5,6 @@ import {
   Bot,
   Check,
   CheckCircle2,
-  Edit3,
   Eye,
   EyeOff,
   FileText,
@@ -84,10 +83,6 @@ export function QuestionCard({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Change-answer flow (only available after submission)
-  const [isChangingAnswer, setIsChangingAnswer] = useState(false);
-  const [pendingOption, setPendingOption] = useState<string | null>(null);
-
   // Bookmark state
   const [bookmarked, setBookmarked] = useState(question.bookmarked);
   const [isBookmarking, setIsBookmarking] = useState(false);
@@ -138,13 +133,8 @@ export function QuestionCard({
 
   /** JAMB click = radio highlight only. No server call yet. */
   function handleSelectOption(key: "A" | "B" | "C" | "D") {
-    if (submittedResult && !isChangingAnswer) return; // locked after submission
+    if (submittedResult) return; // locked after submission
     if (isSubmitting) return;
-
-    if (isChangingAnswer) {
-      setPendingOption(key);
-      return;
-    }
 
     setSelectedOption(key);
     if (typeof window !== "undefined") {
@@ -152,9 +142,29 @@ export function QuestionCard({
     }
   }
 
-  /** User deliberately submits their selected option. */
+  /** User deliberately submits their selected option. Instant reveal if pre-fetched! */
   async function handleSubmitAnswer() {
     if (!selectedOption || isSubmitting) return;
+
+    // Instant local reveal if revealedData is already prefetched
+    if (revealedData) {
+      const isCorrect = selectedOption === revealedData.correctOption;
+      setSubmittedResult({
+        isCorrect,
+        correctOption: revealedData.correctOption,
+        explanation: revealedData.explanation,
+      });
+      setShowAnswer(true);
+      onAttemptRecorded?.(question.id, selectedOption, isCorrect);
+
+      // Record to server in the background without blocking UI
+      void submit({
+        data: { questionId: question.id, selected: selectedOption },
+      }).catch(() => {
+        // Non-blocking sync failure
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -166,38 +176,10 @@ export function QuestionCard({
         correctOption: res.correctOption,
         explanation: res.explanation,
       });
-      // Automatically show answer after submission so feedback is visible
       setShowAnswer(true);
-      setIsChangingAnswer(false);
-      setPendingOption(null);
       onAttemptRecorded?.(question.id, selectedOption, res.isCorrect);
     } catch {
       toast.error("Failed to evaluate answer. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  async function confirmChangeAnswer() {
-    if (!pendingOption) return;
-    setIsSubmitting(true);
-    try {
-      const res = await submit({
-        data: { questionId: question.id, selected: pendingOption },
-      });
-      setSelectedOption(pendingOption);
-      setSubmittedResult({
-        isCorrect: res.isCorrect,
-        correctOption: res.correctOption,
-        explanation: res.explanation,
-      });
-      setShowAnswer(true);
-      setIsChangingAnswer(false);
-      setPendingOption(null);
-      onAttemptRecorded?.(question.id, pendingOption, res.isCorrect);
-      toast.success("Answer updated");
-    } catch {
-      toast.error("Failed to update answer");
     } finally {
       setIsSubmitting(false);
     }
@@ -272,7 +254,7 @@ export function QuestionCard({
   }
 
   // ── Derived display flags ──────────────────────────────────────────────────
-  const isLocked = Boolean(submittedResult) && !isChangingAnswer;
+  const isLocked = Boolean(submittedResult);
   const showExplanation =
     (showAnswer || forceReveal) &&
     Boolean(submittedResult?.explanation ?? revealedData?.explanation);
@@ -289,12 +271,12 @@ export function QuestionCard({
       }`}
     >
       {/* Header: Question Number & Actions */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Question {question.number}
         </span>
 
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {/* Bookmark Button */}
           <button
             type="button"
@@ -308,7 +290,7 @@ export function QuestionCard({
             }`}
           >
             <Bookmark className={`size-3.5 ${bookmarked ? "fill-current text-amber-500" : ""}`} />
-            <span className="hidden sm:inline">{bookmarked ? "Bookmarked" : "Bookmark"}</span>
+            <span className="text-[11px] sm:text-xs">{bookmarked ? "Bookmarked" : "Bookmark"}</span>
           </button>
 
           {/* Note Toggle Button */}
@@ -323,7 +305,9 @@ export function QuestionCard({
             }`}
           >
             <FileText className="size-3.5" />
-            <span className="hidden sm:inline">{question.note ? "Note Added" : "Note"}</span>
+            <span className="text-[11px] sm:text-xs">
+              {question.note ? "Note Added" : "Add Note"}
+            </span>
           </button>
 
           {/* Ask AI Button */}
@@ -339,8 +323,7 @@ export function QuestionCard({
             ) : (
               <Bot className="size-3.5 text-primary" />
             )}
-            <span className="hidden sm:inline">{isAskingAi ? "Preparing..." : "Ask AI"}</span>
-            <span className="sm:hidden">AI</span>
+            <span className="text-[11px] sm:text-xs">{isAskingAi ? "Preparing..." : "Ask AI"}</span>
           </button>
         </div>
       </div>
@@ -368,7 +351,6 @@ export function QuestionCard({
       <div className="mt-5 space-y-2.5">
         {question.options.map((option: Option) => {
           const isSelected = selectedOption === option.key;
-          const isPending = isChangingAnswer && pendingOption === option.key;
           const isCorrectAnswer = submittedResult?.correctOption === option.key;
           const isWrongSelected =
             isSelected &&
@@ -405,7 +387,7 @@ export function QuestionCard({
               radioStyles = "border-primary bg-primary/40";
               radioDotVisible = true;
             }
-          } else if (isSelected || isPending) {
+          } else if (isSelected) {
             // Not yet submitted — highlight the student's radio pick
             outerStyles = "border-primary bg-primary/10 text-foreground font-medium";
             radioStyles = "border-primary bg-primary";
@@ -416,7 +398,7 @@ export function QuestionCard({
             <button
               key={option.key}
               type="button"
-              disabled={isSubmitting || (isLocked && !isChangingAnswer)}
+              disabled={isSubmitting || isLocked}
               onClick={() => handleSelectOption(option.key)}
               className={`group flex w-full items-center gap-3 rounded-xl border p-3.5 text-left text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${outerStyles} ${
                 isLocked ? "cursor-default" : "cursor-pointer active:scale-[0.99]"
@@ -507,18 +489,6 @@ export function QuestionCard({
                   </>
                 )}
               </button>
-
-              {/* Change Answer */}
-              {!isChangingAnswer ? (
-                <button
-                  type="button"
-                  onClick={() => setIsChangingAnswer(true)}
-                  className="inline-flex items-center gap-1 text-xs font-medium underline-offset-4 hover:underline opacity-80 hover:opacity-100"
-                >
-                  <Edit3 className="size-3" />
-                  Change
-                </button>
-              ) : null}
             </div>
           </div>
 
@@ -537,36 +507,6 @@ export function QuestionCard({
               </p>
             ) : null}
           </div>
-
-          {/* Change Answer Confirmation */}
-          {isChangingAnswer ? (
-            <div className="mt-3 border-t border-border/40 pt-3">
-              <p className="text-xs font-medium">Select a new option above, then click confirm:</p>
-              <div className="mt-2 flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="default"
-                  disabled={!pendingOption || isSubmitting}
-                  onClick={confirmChangeAnswer}
-                  className="h-8 text-xs"
-                >
-                  {isSubmitting ? <Loader2 className="mr-1.5 size-3.5 animate-spin" /> : null}
-                  Confirm new answer ({pendingOption || "none"})
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setIsChangingAnswer(false);
-                    setPendingOption(null);
-                  }}
-                  className="h-8 text-xs"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          ) : null}
         </div>
       ) : null}
 
