@@ -19,6 +19,7 @@ import React, { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { MathText } from "@/components/ui/math-text";
 import {
   Select,
