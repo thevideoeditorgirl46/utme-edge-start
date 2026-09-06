@@ -47,7 +47,12 @@ export function InstallAppCTA({ variant = "banner" }: { variant?: "banner" | "co
   }, []);
 
   const canPrompt = Boolean(deferredPrompt);
-  if (hidden || (!canPrompt && !isIOS)) return null;
+  if (hidden) return null;
+
+  const platformHint = isIOS
+    ? "On iPhone: tap the Share button in Safari, then choose “Add to Home Screen”."
+    : "In Chrome: tap the ⋮ menu, then choose “Add to Home screen” / “Install app”.";
+
 
   async function handleInstall() {
     if (deferredPrompt) {
@@ -97,7 +102,7 @@ export function InstallAppCTA({ variant = "banner" }: { variant?: "banner" | "co
       {showIOSHelp && !canPrompt ? (
         <p className="mt-3 flex items-start gap-1.5 text-xs text-muted-foreground">
           <Share className="mt-0.5 size-3.5 shrink-0" />
-          On iPhone: tap the Share button in Safari, then choose “Add to Home Screen”.
+          {platformHint}
         </p>
       ) : null}
     </div>
