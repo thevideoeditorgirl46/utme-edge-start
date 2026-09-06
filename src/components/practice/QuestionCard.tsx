@@ -9,7 +9,7 @@ import {
   EyeOff,
   FileText,
   Loader2,
-  Sparkles,
+
   XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
