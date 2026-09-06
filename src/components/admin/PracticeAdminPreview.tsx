@@ -136,7 +136,6 @@ export function PracticeAdminPreview() {
         studentSelectedOption: attempts[q.id]?.selected,
       });
 
-      setPreparedAiPrompt(prompt);
       try {
         await navigator.clipboard.writeText(prompt);
       } catch {
