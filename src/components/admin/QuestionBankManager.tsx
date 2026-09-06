@@ -115,7 +115,7 @@ export function QuestionBankManager() {
   });
 
   const seedMutation = useMutation({
-    mutationFn: () => seedSyllabus({ data: {} }),
+    mutationFn: () => seedSyllabus({}),
     onSuccess: (res) => {
       toast.success(
         `🎉 Successfully applied official JAMB syllabus! (${res.subjectsCount} subjects, ${res.topicsCount} topics, ${res.questionsCount} questions)`,

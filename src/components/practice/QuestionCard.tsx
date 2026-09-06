@@ -9,7 +9,7 @@ import {
   EyeOff,
   FileText,
   Loader2,
-  Sparkles,
+
   XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -254,30 +254,6 @@ export function QuestionCard({
     }
   }
 
-  /** Copies a ready-made AI prompt and opens Gemini so the student only pastes + presses Enter. */
-  function handleAskAI() {
-    const optionsText = question.options.map((o) => `${o.key}. ${o.text}`).join("\n");
-    const prompt = [
-      "You are a patient JAMB/UTME tutor. Solve this question step by step, explain the concept behind it, then state the correct option and why the other options are wrong.",
-      "",
-      question.prompt,
-      "",
-      optionsText,
-    ].join("\n");
-
-    navigator.clipboard
-      .writeText(prompt)
-      .then(() => {
-        toast.success("Prompt copied! Paste it into Gemini (Ctrl+V) and press Enter.");
-        window.open("https://gemini.google.com/app", "_blank", "noopener,noreferrer");
-      })
-      .catch(() => {
-        window.open("https://gemini.google.com/app", "_blank", "noopener,noreferrer");
-        toast.info("Gemini opened — copy the question with the Copy button, then paste it there.");
-      });
-  }
-
-
   // ── Derived display flags ──────────────────────────────────────────────────
   const isLocked = Boolean(submittedResult);
   const showExplanation =
@@ -349,17 +325,6 @@ export function QuestionCard({
               <Bot className="size-3.5 text-primary" />
             )}
             <span className="text-[11px] sm:text-xs">{isAskingAi ? "Preparing..." : "Ask AI"}</span>
-          </button>
-
-          {/* Ask AI Button — copies a ready prompt and opens Gemini */}
-          <button
-            type="button"
-            onClick={handleAskAI}
-            title="Ask AI about this question (opens Gemini with the prompt copied)"
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-          >
-            <Sparkles className="size-3.5" />
-            <span className="hidden sm:inline">Ask AI</span>
           </button>
 
         </div>
