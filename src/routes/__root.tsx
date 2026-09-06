@@ -77,21 +77,30 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Newton Edge Tutorial — Foundational Class for UTME" },
+      {
+        name: "description",
+        content:
+          "Newton Edge Tutorial Foundational Class for UTME candidates — strong fundamentals, mock exams, and Edge Practice.",
+      },
+      { name: "author", content: "Newton Edge Tutorial" },
+      { name: "theme-color", content: "#0B1B3A" },
+      { property: "og:title", content: "Newton Edge Tutorial — Foundational Class" },
+      {
+        property: "og:description",
+        content: "Build a strong UTME foundation with Newton Edge Tutorial.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
   shellComponent: RootShell,
