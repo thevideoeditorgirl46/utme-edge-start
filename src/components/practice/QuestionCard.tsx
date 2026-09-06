@@ -10,6 +10,7 @@ import {
   EyeOff,
   FileText,
   Loader2,
+  Sparkles,
   XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -316,6 +317,18 @@ export function QuestionCard({
             <Copy className="size-3.5" />
             <span className="hidden sm:inline">Copy</span>
           </button>
+
+          {/* Ask AI Button — copies a ready prompt and opens Gemini */}
+          <button
+            type="button"
+            onClick={handleAskAI}
+            title="Ask AI about this question (opens Gemini with the prompt copied)"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <Sparkles className="size-3.5" />
+            <span className="hidden sm:inline">Ask AI</span>
+          </button>
+
         </div>
       </div>
 
