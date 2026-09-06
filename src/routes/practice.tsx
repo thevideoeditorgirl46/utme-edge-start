@@ -11,6 +11,7 @@ import { SubjectList } from "@/components/practice/SubjectList";
 import { TopicList } from "@/components/practice/TopicList";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
+import { InstallAppCTA } from "@/components/site/InstallAppCTA";
 import { useAuth } from "@/hooks/useAuth";
 import { getPracticeAccess } from "@/lib/edge-practice.functions";
 
@@ -194,6 +195,7 @@ function PracticePage() {
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
+        <InstallAppCTA />
         {isCheckingAccess ? (
           <div className="mx-auto w-full max-w-2xl space-y-4 py-12">
             <div className="h-6 w-36 animate-pulse rounded bg-muted" />
