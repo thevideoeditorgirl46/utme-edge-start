@@ -59,10 +59,18 @@ function AuthPage() {
   }
 
   async function google() {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+    setBusy(true);
+    setError(null);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
     });
+    setBusy(false);
+    if (result.error) {
+      setError(result.error.message ?? "Google sign-in failed. Please try again.");
+      return;
+    }
+    if (result.redirected) return;
+    // Session already set — the useEffect above will route to the dashboard.
   }
 
   return (
