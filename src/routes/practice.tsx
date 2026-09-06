@@ -195,7 +195,9 @@ function PracticePage() {
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8 sm:px-6">
-        <InstallAppCTA />
+        <div className="mb-6">
+          <InstallAppCTA />
+        </div>
         {isCheckingAccess ? (
           <div className="mx-auto w-full max-w-2xl space-y-4 py-12">
             <div className="h-6 w-36 animate-pulse rounded bg-muted" />
