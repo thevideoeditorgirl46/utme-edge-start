@@ -254,30 +254,6 @@ export function QuestionCard({
     }
   }
 
-  /** Copies a ready-made AI prompt and opens Gemini so the student only pastes + presses Enter. */
-  function handleAskAI() {
-    const optionsText = question.options.map((o) => `${o.key}. ${o.text}`).join("\n");
-    const prompt = [
-      "You are a patient JAMB/UTME tutor. Solve this question step by step, explain the concept behind it, then state the correct option and why the other options are wrong.",
-      "",
-      question.prompt,
-      "",
-      optionsText,
-    ].join("\n");
-
-    navigator.clipboard
-      .writeText(prompt)
-      .then(() => {
-        toast.success("Prompt copied! Paste it into Gemini (Ctrl+V) and press Enter.");
-        window.open("https://gemini.google.com/app", "_blank", "noopener,noreferrer");
-      })
-      .catch(() => {
-        window.open("https://gemini.google.com/app", "_blank", "noopener,noreferrer");
-        toast.info("Gemini opened — copy the question with the Copy button, then paste it there.");
-      });
-  }
-
-
   // ── Derived display flags ──────────────────────────────────────────────────
   const isLocked = Boolean(submittedResult);
   const showExplanation =
