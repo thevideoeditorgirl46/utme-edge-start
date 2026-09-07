@@ -35,6 +35,8 @@ interface SingleTopicProps {
   currentPage: number;
   onPageChange: (newPage: number) => void;
   onBackToTopics: () => void;
+  /** Ends the session and clears the saved question selection. */
+  onEndSession: () => void;
 }
 
 // ── Multi-topic mode props ─────────────────────────────────────────────────
@@ -45,7 +47,10 @@ interface MultiTopicProps {
   currentPage: number;
   onPageChange: (newPage: number) => void;
   onBackToTopics: () => void;
+  /** Ends the session and clears the saved question selection. */
+  onEndSession: () => void;
 }
+
 
 type PracticeEngineProps = SingleTopicProps | MultiTopicProps;
 
