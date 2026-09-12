@@ -14,6 +14,7 @@ import {
   Plus,
   Search,
   Sparkles,
+  Trash2,
   UploadCloud,
   XCircle,
   Zap,
@@ -45,6 +46,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import type { AdminQuestionItem } from "@/lib/practice-admin.functions";
 import {
+  bulkDeleteAdminQuestions,
   bulkUpdateAdminQuestionStatus,
   getAdminQuestions,
   seedOfficialJambSyllabus,
@@ -75,6 +77,7 @@ export function QuestionBankManager() {
   const fetchQuestions = useServerFn(getAdminQuestions);
   const updateStatus = useServerFn(updateAdminQuestionStatus);
   const bulkUpdateStatus = useServerFn(bulkUpdateAdminQuestionStatus);
+  const bulkDeleteQuestions = useServerFn(bulkDeleteAdminQuestions);
   const saveQuestion = useServerFn(upsertAdminQuestion);
   const seedSyllabus = useServerFn(seedOfficialJambSyllabus);
 
@@ -85,6 +88,7 @@ export function QuestionBankManager() {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
 
   // Edit / Add Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -152,6 +156,17 @@ export function QuestionBankManager() {
       toast.success(
         `${res.count} question(s) ${vars.status === "published" ? "published" : "unpublished"}`,
       );
+      setSelectedQuestionIds([]);
+      void queryClient.invalidateQueries({ queryKey: ["admin-questions"] });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (questionIds: string[]) => bulkDeleteQuestions({ data: { questionIds } }),
+    onSuccess: (res) => {
+      toast.success(`${res.count} question(s) deleted`);
+      setIsConfirmDeleteOpen(false);
       setSelectedQuestionIds([]);
       void queryClient.invalidateQueries({ queryKey: ["admin-questions"] });
     },
@@ -453,6 +468,16 @@ export function QuestionBankManager() {
               >
                 <Archive className="size-3.5" />
                 Unpublish selected
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                disabled={selectedQuestions.length === 0 || bulkDeleteMutation.isPending}
+                onClick={() => setIsConfirmDeleteOpen(true)}
+                className="h-8 gap-1.5 text-xs"
+              >
+                <Trash2 className="size-3.5" />
+                Delete selected
               </Button>
             </div>
           </div>
@@ -902,6 +927,46 @@ export function QuestionBankManager() {
                 <Zap className="size-3.5" />
               )}
               {seedMutation.isPending ? "Seeding Database..." : "Confirm & Apply Seed"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isConfirmDeleteOpen} onOpenChange={setIsConfirmDeleteOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold text-destructive">
+              <Trash2 className="size-5" />
+              Delete selected questions?
+            </DialogTitle>
+            <DialogDescription className="pt-1 text-xs leading-relaxed text-muted-foreground">
+              This permanently deletes {selectedQuestions.length} selected question(s), including
+              their revisions, bookmarks, notes, and attempts. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsConfirmDeleteOpen(false)}
+              disabled={bulkDeleteMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="gap-2"
+              onClick={() => bulkDeleteMutation.mutate(selectedQuestions.map((q) => q.id))}
+              disabled={bulkDeleteMutation.isPending || selectedQuestions.length === 0}
+            >
+              {bulkDeleteMutation.isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="size-3.5" />
+              )}
+              {bulkDeleteMutation.isPending ? "Deleting..." : "Delete permanently"}
             </Button>
           </DialogFooter>
         </DialogContent>

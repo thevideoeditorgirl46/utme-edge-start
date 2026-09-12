@@ -236,6 +236,35 @@ export const bulkUpdateAdminQuestionStatus = createServerFn({ method: "POST" })
     return { ok: true, status: data.status, count: updated?.length ?? 0 };
   });
 
+export const bulkDeleteAdminQuestions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { questionIds: string[] }) => {
+    if (!Array.isArray(input?.questionIds) || input.questionIds.length === 0) {
+      throw new Error("Select at least one question");
+    }
+    if (input.questionIds.length > 200) {
+      throw new Error("You can delete at most 200 questions at a time");
+    }
+    if (!input.questionIds.every((id) => typeof id === "string" && id.length > 0)) {
+      throw new Error("Invalid question selection");
+    }
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: deleted, error } = await supabaseAdmin
+      .from("questions")
+      .delete()
+      .in("id", data.questionIds)
+      .select("id");
+
+    if (error) throw new Error(error.message);
+    return { ok: true, count: deleted?.length ?? 0 };
+  });
+
 export const upsertAdminQuestion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
