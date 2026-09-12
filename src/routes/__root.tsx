@@ -85,6 +85,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { name: "author", content: "Newton Edge Tutorial" },
       { name: "theme-color", content: "#0B1B3A" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Newton Edge" },
       { property: "og:title", content: "Newton Edge Tutorial — Foundational Class" },
       {
         property: "og:description",
@@ -110,6 +113,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+      });
+    }
+  }, []);
+
   return (
     <html lang="en">
       <head>

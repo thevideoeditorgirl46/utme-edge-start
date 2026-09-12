@@ -313,4 +313,4 @@ export function buildAskAiPrompt(input: AskAiQuestionInput): string {
   return `${UNIVERSAL_JAMB_RULES}\n\n---\n\n${filled}${studentAttemptContext}`;
 }
 
-export const GOOGLE_GEMINI_URL = "https://gemini.google.com/app";
+export const CHATGPT_URL = "https://chatgpt.com";

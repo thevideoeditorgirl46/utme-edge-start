@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { ContentProtection } from "@/components/practice/ContentProtection";
 import { Button } from "@/components/ui/button";
 import { MathText } from "@/components/ui/math-text";
-import { buildAskAiPrompt, GOOGLE_GEMINI_URL } from "@/lib/ask-ai";
+import { buildAskAiPrompt, CHATGPT_URL } from "@/lib/ask-ai";
 import { getSavedQuestions } from "@/lib/edge-practice.functions";
 
 interface SavedQuestionsProps {
@@ -73,9 +73,9 @@ export function SavedQuestions({ onGoToTopic }: SavedQuestionsProps) {
         // ignore
       }
 
-      const geminiUrl = `${GOOGLE_GEMINI_URL}?prompt=${encodeURIComponent(prompt)}`;
-      window.open(geminiUrl, "_blank", "noopener,noreferrer");
-      toast.success("🤖 Opening Gemini with your question... Just click Enter or Send!", {
+      const chatGptUrl = `${CHATGPT_URL}/?q=${encodeURIComponent(prompt)}`;
+      window.open(chatGptUrl, "_blank", "noopener,noreferrer");
+      toast.success("🤖 Opening ChatGPT with your question... Ready to answer!", {
         id: toastId,
         duration: 4000,
       });

@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 
+import { InstallAppCTA } from "@/components/site/InstallAppCTA";
 import { Logo } from "@/components/site/Logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -37,6 +38,8 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <InstallAppCTA variant="compact" />
+
           {user ? (
             <Button asChild size="sm" variant="ghost" className="hidden sm:inline-flex">
               <Link to="/practice">Edge Practice</Link>
@@ -79,6 +82,9 @@ export function Header() {
                     Register Free
                   </Link>
                 </Button>
+                <div className="mt-4">
+                  <InstallAppCTA variant="banner" />
+                </div>
               </div>
             </SheetContent>
           </Sheet>

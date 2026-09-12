@@ -16,9 +16,17 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { MathText } from "@/components/ui/math-text";
 import { Textarea } from "@/components/ui/textarea";
-import { buildAskAiPrompt, GOOGLE_GEMINI_URL } from "@/lib/ask-ai";
+import { buildAskAiPrompt, CHATGPT_URL } from "@/lib/ask-ai";
 import type { Option, StudentQuestion } from "@/lib/edge-practice.functions";
 import { saveNote, submitAnswer, toggleBookmark } from "@/lib/edge-practice.functions";
 
@@ -88,15 +96,15 @@ export function QuestionCard({
   const [bookmarked, setBookmarked] = useState(question.bookmarked);
   const [isBookmarking, setIsBookmarking] = useState(false);
 
-  // Note state
-  const [noteOpen, setNoteOpen] = useState(Boolean(question.note));
+  // Note state (popup modal dialog card)
+  const [noteOpen, setNoteOpen] = useState(false);
   const [noteBody, setNoteBody] = useState(question.note || "");
   const [isSavingNote, setIsSavingNote] = useState(false);
 
   // ── Sync forceReveal / revealedData from parent ──────────────────────────
   useEffect(() => {
-    if (revealedData && !submittedResult) {
-      // Parent bulk-revealed — treat as auto-submitted
+    if (forceReveal && revealedData && !submittedResult) {
+      // Parent explicitly clicked "View All Explanations"
       setSubmittedResult({
         isCorrect: selectedOption ? selectedOption === revealedData.correctOption : false,
         correctOption: revealedData.correctOption,
@@ -115,13 +123,13 @@ export function QuestionCard({
           : prev,
       );
     }
-  }, [revealedData]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [forceReveal, revealedData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (forceReveal && submittedResult) {
+    if (forceReveal) {
       setShowAnswer(true);
     }
-  }, [forceReveal, submittedResult]);
+  }, [forceReveal]);
 
   // Report the score only after the answer has actually been viewed.
   useEffect(() => {
@@ -239,13 +247,13 @@ export function QuestionCard({
         // ignore
       }
 
-      // Open Google Gemini directly with prefilled prompt parameter in a new tab
-      const geminiUrl = `${GOOGLE_GEMINI_URL}?prompt=${encodeURIComponent(prompt)}`;
-      window.open(geminiUrl, "_blank", "noopener,noreferrer");
+      // Open ChatGPT directly with prefilled prompt parameter in a new tab
+      const chatGptUrl = `${CHATGPT_URL}/?q=${encodeURIComponent(prompt)}`;
+      window.open(chatGptUrl, "_blank", "noopener,noreferrer");
 
-      toast.success("🤖 Opening Gemini with your question... Just click Enter or Send!", {
+      toast.success("🤖 Opening ChatGPT with your question... Ready to answer!", {
         id: toastId,
-        duration: 4000,
+        duration: 4500,
       });
     } catch {
       toast.error("Could not prepare AI prompt. Please try again.", { id: toastId });
@@ -264,7 +272,7 @@ export function QuestionCard({
     <article
       id={`question-${question.number}`}
       className={`protected-practice-content select-none rounded-2xl border bg-card p-5 shadow-sm transition-all sm:p-6 ${
-        submittedResult
+        submittedResult && showAnswer
           ? submittedResult.isCorrect
             ? "border-emerald-500/30 dark:border-emerald-500/20"
             : "border-red-500/30 dark:border-red-500/20"
@@ -383,10 +391,10 @@ export function QuestionCard({
               radioDotVisible = true;
             }
           } else if (submittedResult && !showAnswer) {
-            // Submitted but answer panel hidden — show muted selected state
+            // Submitted but answer panel hidden — show neutral clean selected state (no green/red spoiler)
             if (isSelected) {
-              outerStyles = "border-primary/40 bg-primary/5 text-foreground";
-              radioStyles = "border-primary bg-primary/40";
+              outerStyles = "border-primary bg-primary/10 text-foreground font-medium";
+              radioStyles = "border-primary bg-primary";
               radioDotVisible = true;
             }
           } else if (isSelected) {
@@ -452,64 +460,76 @@ export function QuestionCard({
 
       {/* ── Post-Submission Result Banner ────────────────────────────────── */}
       {submittedResult ? (
-        <div
-          className={`mt-4 rounded-xl border p-3.5 text-sm transition-all ${
-            submittedResult.isCorrect
-              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-200"
-              : "border-red-500/30 bg-red-500/10 text-red-900 dark:text-red-200"
-          }`}
-        >
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 font-semibold">
-              {submittedResult.isCorrect ? (
-                <>
-                  <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>Correct ✓</span>
-                </>
-              ) : (
-                <>
-                  <XCircle className="size-4 text-red-600 dark:text-red-400" />
-                  <span>Not quite</span>
-                </>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* View / Hide Answer toggle */}
-              <button
-                type="button"
-                onClick={() => setShowAnswer((p) => !p)}
-                className="inline-flex items-center gap-1 rounded-lg bg-background/60 px-2.5 py-1 text-xs font-medium hover:bg-background transition-colors"
-              >
-                {showAnswer ? (
+        showAnswer ? (
+          <div
+            className={`mt-4 rounded-xl border p-3.5 text-sm transition-all ${
+              submittedResult.isCorrect
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-200"
+                : "border-red-500/30 bg-red-500/10 text-red-900 dark:text-red-200"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 font-semibold">
+                {submittedResult.isCorrect ? (
                   <>
-                    <EyeOff className="size-3" /> Hide Answer
+                    <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />
+                    <span>Correct ✓</span>
                   </>
                 ) : (
                   <>
-                    <Eye className="size-3" /> View Answer
+                    <XCircle className="size-4 text-red-600 dark:text-red-400" />
+                    <span>Not quite</span>
                   </>
                 )}
-              </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* View / Hide Answer toggle */}
+                <button
+                  type="button"
+                  onClick={() => setShowAnswer(false)}
+                  className="inline-flex items-center gap-1 rounded-lg bg-background/60 px-2.5 py-1 text-xs font-medium hover:bg-background transition-colors text-foreground"
+                >
+                  <EyeOff className="size-3" /> Hide Answer
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+              {selectedOption ? (
+                <p>
+                  Your answer: <span className="font-bold">{selectedOption}</span>
+                </p>
+              ) : null}
+              {submittedResult.correctOption ? (
+                <p>
+                  Correct answer:{" "}
+                  <span className="font-bold text-emerald-700 dark:text-emerald-300">
+                    {submittedResult.correctOption}
+                  </span>
+                </p>
+              ) : null}
             </div>
           </div>
-
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-            {selectedOption ? (
-              <p>
-                Your answer: <span className="font-bold">{selectedOption}</span>
-              </p>
-            ) : null}
-            {showAnswer && submittedResult.correctOption ? (
-              <p>
-                Correct answer:{" "}
-                <span className="font-bold text-emerald-700 dark:text-emerald-300">
-                  {submittedResult.correctOption}
+        ) : (
+          <div className="mt-4 flex items-center justify-between gap-2 rounded-xl border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <span>Answer hidden</span>
+              {selectedOption ? (
+                <span>
+                  · Your selection: <strong className="text-foreground">{selectedOption}</strong>
                 </span>
-              </p>
-            ) : null}
+              ) : null}
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAnswer(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
+            >
+              <Eye className="size-3.5" /> View Answer
+            </button>
           </div>
-        </div>
+        )
       ) : null}
 
       {/* ── Explanation Section ────────────────────────────────────────────── */}
@@ -535,50 +555,57 @@ export function QuestionCard({
         </div>
       ) : null}
 
-      {/* ── Personal Note Editor ──────────────────────────────────────────── */}
-      {noteOpen ? (
-        <div className="mt-4 rounded-xl border border-border bg-secondary/20 p-4">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              My Personal Note
-            </span>
-            <span className="text-[11px] text-muted-foreground">Private to you</span>
+      {/* ── Personal Note Dialog Popup Card ──────────────────────────────── */}
+      <Dialog open={noteOpen} onOpenChange={setNoteOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold">
+              <FileText className="size-4 text-primary" />
+              Personal Note — Question {question.number}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Private study notes visible only to you.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2 py-2">
+            <p className="text-[11px] text-muted-foreground">
+              💡 Helpful prompts: Formula to remember · Why I missed this · Key concept
+            </p>
+            <Textarea
+              placeholder="Write your note here..."
+              value={noteBody}
+              onChange={(e) => setNoteBody(e.target.value)}
+              className="min-h-[120px] text-sm bg-background resize-y"
+            />
           </div>
 
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Prompts: What I understood · Don't forget · Why I got this wrong
-          </p>
-
-          <Textarea
-            placeholder="Write your note here (e.g. Formula to remember, key concept)..."
-            value={noteBody}
-            onChange={(e) => setNoteBody(e.target.value)}
-            className="mt-2 min-h-[80px] text-sm bg-background"
-          />
-
-          <div className="mt-2.5 flex items-center justify-between">
+          <DialogFooter className="flex-row items-center justify-between gap-2 sm:justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setNoteOpen(false)}
+              className="h-8 text-xs"
+            >
+              Cancel
+            </Button>
             <Button
               type="button"
               size="sm"
               disabled={isSavingNote}
-              onClick={handleSaveNote}
+              onClick={async () => {
+                await handleSaveNote();
+                setNoteOpen(false);
+              }}
               className="h-8 text-xs"
             >
               {isSavingNote ? <Loader2 className="mr-1.5 size-3.5 animate-spin" /> : null}
               Save Note
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setNoteOpen(false)}
-              className="h-8 text-xs text-muted-foreground"
-            >
-              Close
-            </Button>
-          </div>
-        </div>
-      ) : null}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </article>
   );
 }
