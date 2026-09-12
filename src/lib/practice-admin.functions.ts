@@ -198,23 +198,21 @@ export const updateAdminQuestionStatus = createServerFn({ method: "POST" })
 
 export const bulkUpdateAdminQuestionStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (input: { questionIds: string[]; status: "approved" | "published" }) => {
-      if (!Array.isArray(input?.questionIds) || input.questionIds.length === 0) {
-        throw new Error("Select at least one question");
-      }
-      if (input.questionIds.length > 200) {
-        throw new Error("You can update at most 200 questions at a time");
-      }
-      if (!input.questionIds.every((id) => typeof id === "string" && id.length > 0)) {
-        throw new Error("Invalid question selection");
-      }
-      if (!["approved", "published"].includes(input.status)) {
-        throw new Error("Invalid bulk status");
-      }
-      return input;
-    },
-  )
+  .inputValidator((input: { questionIds: string[]; status: "approved" | "published" }) => {
+    if (!Array.isArray(input?.questionIds) || input.questionIds.length === 0) {
+      throw new Error("Select at least one question");
+    }
+    if (input.questionIds.length > 200) {
+      throw new Error("You can update at most 200 questions at a time");
+    }
+    if (!input.questionIds.every((id) => typeof id === "string" && id.length > 0)) {
+      throw new Error("Invalid question selection");
+    }
+    if (!["approved", "published"].includes(input.status)) {
+      throw new Error("Invalid bulk status");
+    }
+    return input;
+  })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId);
