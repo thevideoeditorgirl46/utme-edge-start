@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { MathText } from "@/components/ui/math-text";
 import {
   Select,
@@ -44,6 +45,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import type { AdminQuestionItem } from "@/lib/practice-admin.functions";
 import {
+  bulkUpdateAdminQuestionStatus,
   getAdminQuestions,
   seedOfficialJambSyllabus,
   updateAdminQuestionStatus,
@@ -72,6 +74,7 @@ export function QuestionBankManager() {
   const queryClient = useQueryClient();
   const fetchQuestions = useServerFn(getAdminQuestions);
   const updateStatus = useServerFn(updateAdminQuestionStatus);
+  const bulkUpdateStatus = useServerFn(bulkUpdateAdminQuestionStatus);
   const saveQuestion = useServerFn(upsertAdminQuestion);
   const seedSyllabus = useServerFn(seedOfficialJambSyllabus);
 
@@ -81,6 +84,7 @@ export function QuestionBankManager() {
   const [selectedTopic, setSelectedTopic] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
 
   // Edit / Add Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -136,6 +140,19 @@ export function QuestionBankManager() {
     }) => updateStatus({ data: input }),
     onSuccess: (_, vars) => {
       toast.success(`Question status updated to ${vars.status}`);
+      void queryClient.invalidateQueries({ queryKey: ["admin-questions"] });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const bulkStatusMutation = useMutation({
+    mutationFn: (input: { questionIds: string[]; status: "approved" | "published" }) =>
+      bulkUpdateStatus({ data: input }),
+    onSuccess: (res, vars) => {
+      toast.success(
+        `${res.count} question(s) ${vars.status === "published" ? "published" : "unpublished"}`,
+      );
+      setSelectedQuestionIds([]);
       void queryClient.invalidateQueries({ queryKey: ["admin-questions"] });
     },
     onError: (err: Error) => toast.error(err.message),
@@ -258,6 +275,32 @@ export function QuestionBankManager() {
     return s ? t.subject_id === s.id : true;
   });
   const questions = data?.questions ?? [];
+  const selectedIds = new Set(selectedQuestionIds);
+  const allVisibleSelected = questions.length > 0 && questions.every((q) => selectedIds.has(q.id));
+  const selectedQuestions = questions.filter((q) => selectedIds.has(q.id));
+  const canPublishSelected = selectedQuestions.some((q) => q.status === "approved");
+  const canUnpublishSelected = selectedQuestions.some((q) => q.status === "published");
+
+  function toggleQuestion(questionId: string, checked: boolean) {
+    setSelectedQuestionIds((current) =>
+      checked ? [...new Set([...current, questionId])] : current.filter((id) => id !== questionId),
+    );
+  }
+
+  function toggleAllVisible(checked: boolean) {
+    setSelectedQuestionIds((current) => {
+      if (!checked) return current.filter((id) => !questions.some((q) => q.id === id));
+      return [...new Set([...current, ...questions.map((q) => q.id)])];
+    });
+  }
+
+  function runBulkStatus(status: "approved" | "published") {
+    const eligibleIds = selectedQuestions
+      .filter((q) => (status === "published" ? q.status === "approved" : q.status === "published"))
+      .map((q) => q.id);
+    if (eligibleIds.length === 0) return;
+    bulkStatusMutation.mutate({ questionIds: eligibleIds, status });
+  }
 
   return (
     <section className="space-y-6">
@@ -377,6 +420,42 @@ export function QuestionBankManager() {
         </div>
       ) : (
         <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <Checkbox
+                checked={allVisibleSelected}
+                onCheckedChange={(checked) => toggleAllVisible(checked === true)}
+                aria-label="Select all visible questions"
+              />
+              Select visible questions
+              {selectedQuestionIds.length > 0 ? (
+                <span className="text-xs text-muted-foreground">
+                  ({selectedQuestionIds.length} selected)
+                </span>
+              ) : null}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                disabled={!canPublishSelected || bulkStatusMutation.isPending}
+                onClick={() => runBulkStatus("published")}
+                className="h-8 gap-1.5 bg-emerald-600 text-xs text-white hover:bg-emerald-700"
+              >
+                <CheckCircle className="size-3.5" />
+                Publish selected
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!canUnpublishSelected || bulkStatusMutation.isPending}
+                onClick={() => runBulkStatus("approved")}
+                className="h-8 gap-1.5 text-xs"
+              >
+                <Archive className="size-3.5" />
+                Unpublish selected
+              </Button>
+            </div>
+          </div>
           {questions.map((q) => (
             <article
               key={q.id}
@@ -384,6 +463,11 @@ export function QuestionBankManager() {
             >
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
                 <div className="flex flex-wrap items-center gap-2">
+                  <Checkbox
+                    checked={selectedIds.has(q.id)}
+                    onCheckedChange={(checked) => toggleQuestion(q.id, checked === true)}
+                    aria-label={`Select question: ${q.prompt.slice(0, 80)}`}
+                  />
                   <span
                     className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${
                       STATUS_BADGES[q.status] || "bg-muted text-muted-foreground"

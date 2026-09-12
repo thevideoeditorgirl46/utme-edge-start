@@ -196,6 +196,46 @@ export const updateAdminQuestionStatus = createServerFn({ method: "POST" })
     return { ok: true, status: data.status };
   });
 
+export const bulkUpdateAdminQuestionStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: { questionIds: string[]; status: "approved" | "published" }) => {
+      if (!Array.isArray(input?.questionIds) || input.questionIds.length === 0) {
+        throw new Error("Select at least one question");
+      }
+      if (input.questionIds.length > 200) {
+        throw new Error("You can update at most 200 questions at a time");
+      }
+      if (!input.questionIds.every((id) => typeof id === "string" && id.length > 0)) {
+        throw new Error("Invalid question selection");
+      }
+      if (!["approved", "published"].includes(input.status)) {
+        throw new Error("Invalid bulk status");
+      }
+      return input;
+    },
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let query = supabaseAdmin
+      .from("questions")
+      .update({
+        status: data.status,
+        updated_at: new Date().toISOString(),
+      })
+      .in("id", data.questionIds);
+
+    query = query.eq("status", data.status === "published" ? "approved" : "published");
+
+    const { data: updated, error } = await query.select("id");
+
+    if (error) throw new Error(error.message);
+    return { ok: true, status: data.status, count: updated?.length ?? 0 };
+  });
+
 export const upsertAdminQuestion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
