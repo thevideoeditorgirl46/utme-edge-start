@@ -364,7 +364,7 @@ export function BulkQuestionUploader({ subjects, topics, onSuccess }: BulkQuesti
           continue;
         }
         if (collectingPrompt) {
-          const cleanLine = line.replace(/^(?:\d+[.)]|Q\d+[.):]|Question\s*\d+[.):])\\s*/i, "");
+          const cleanLine = line.replace(/^(?:\d+[.)]|Q\s*\d+[.):]|Question\s*\d+[.):])\s*/i, "");
           prompt = prompt ? `${prompt}\n${cleanLine}` : cleanLine;
         } else if (explanation) {
           explanation += `\n${line}`;
