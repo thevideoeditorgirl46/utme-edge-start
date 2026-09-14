@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { BulkQuestionInput } from "@/lib/practice-admin.functions";
-import { bulkUpsertAdminQuestions } from "@/lib/practice-admin.functions";
+import { bulkUpsertAdminQuestions, uploadQuestionImage } from "@/lib/practice-admin.functions";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -52,6 +52,29 @@ export type StagedQuestion = {
   source: string;
   previewMath: boolean;
 };
+
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+
+async function compressImage(file: File): Promise<string> {
+  if (!file.type.startsWith("image/")) throw new Error("Please paste an image file");
+  const bitmap = await createImageBitmap(file);
+  const maxDimension = 2400;
+  const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Could not prepare image");
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+
+  for (const quality of [0.82, 0.68, 0.52, 0.38, 0.25]) {
+    const dataUrl = canvas.toDataURL("image/jpeg", quality);
+    const size = Math.ceil((dataUrl.length - dataUrl.indexOf(",") - 1) * 0.75);
+    if (size <= MAX_IMAGE_BYTES) return dataUrl;
+  }
+  throw new Error("Image is too large to compress below 8 MB");
+}
 
 interface BulkQuestionUploaderProps {
   subjects: Array<{ id: string; slug: string; name: string }>;
@@ -186,6 +209,7 @@ function parseCSV(raw: string): string[][] {
 export function BulkQuestionUploader({ subjects, topics, onSuccess }: BulkQuestionUploaderProps) {
   const queryClient = useQueryClient();
   const bulkSave = useServerFn(bulkUpsertAdminQuestions);
+  const uploadImage = useServerFn(uploadQuestionImage);
   const csvFileRef = useRef<HTMLInputElement>(null);
 
   // Default subject / topic selectors (for text/AI tab)
@@ -198,6 +222,7 @@ export function BulkQuestionUploader({ subjects, topics, onSuccess }: BulkQuesti
   const [csvFileName, setCsvFileName] = useState<string>("");
   const [stagedQuestions, setStagedQuestions] = useState<StagedQuestion[]>([]);
   const [activeTab, setActiveTab] = useState<ActiveTab>("input");
+  const [uploadingImage, setUploadingImage] = useState<string | null>(null);
 
   // Filter topics for the currently selected subject (text/AI tab default)
   const currentTopics = topics.filter((t) =>
@@ -513,6 +538,30 @@ export function BulkQuestionUploader({ subjects, topics, onSuccess }: BulkQuesti
     value: StagedQuestion[K],
   ) {
     setStagedQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, [field]: value } : q)));
+  }
+
+  async function handleImagePaste(
+    event: React.ClipboardEvent<HTMLInputElement>,
+    questionId: string,
+    field: "imageUrl" | "explanationImageUrl",
+  ) {
+    const image = Array.from(event.clipboardData.items)
+      .find((item) => item.kind === "file" && item.type.startsWith("image/"))
+      ?.getAsFile();
+    if (!image) return;
+    event.preventDefault();
+    const uploadKey = `${questionId}:${field}`;
+    setUploadingImage(uploadKey);
+    try {
+      const compressed = await compressImage(image);
+      const result = await uploadImage({ data: { dataUrl: compressed } });
+      updateQuestionField(questionId, field, result.url);
+      toast.success("Image uploaded and URL added");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not upload image");
+    } finally {
+      setUploadingImage(null);
+    }
   }
 
   function deleteQuestion(id: string) {
@@ -1106,9 +1155,16 @@ export function BulkQuestionUploader({ subjects, topics, onSuccess }: BulkQuesti
                         <Input
                           value={q.imageUrl}
                           onChange={(e) => updateQuestionField(q.id, "imageUrl", e.target.value)}
+                          onPaste={(e) => handleImagePaste(e, q.id, "imageUrl")}
+                          disabled={uploadingImage === `${q.id}:imageUrl`}
                           placeholder="https://... (circuit diagram, apparatus illustration)"
                           className="mt-1 font-mono text-xs"
                         />
+                        {uploadingImage === `${q.id}:imageUrl` ? (
+                          <p className="mt-1 text-[11px] text-muted-foreground">
+                            Compressing and uploading image...
+                          </p>
+                        ) : null}
                         {q.imageUrl ? (
                           <div className="mt-2 max-w-sm overflow-hidden rounded-xl border border-border">
                             <img
@@ -1206,9 +1262,16 @@ export function BulkQuestionUploader({ subjects, topics, onSuccess }: BulkQuesti
                             onChange={(e) =>
                               updateQuestionField(q.id, "explanationImageUrl", e.target.value)
                             }
+                            onPaste={(e) => handleImagePaste(e, q.id, "explanationImageUrl")}
+                            disabled={uploadingImage === `${q.id}:explanationImageUrl`}
                             placeholder="https://... (worked solution chart)"
                             className="mt-1 font-mono text-xs"
                           />
+                          {uploadingImage === `${q.id}:explanationImageUrl` ? (
+                            <p className="mt-1 text-[11px] text-muted-foreground">
+                              Compressing and uploading image...
+                            </p>
+                          ) : null}
                           {q.explanationImageUrl ? (
                             <div className="mt-2 max-w-xs overflow-hidden rounded-xl border border-border">
                               <img

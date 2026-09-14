@@ -44,8 +44,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { clearCachedPracticePages } from "@/components/practice/offline-cache";
 import type { AdminQuestionItem } from "@/lib/practice-admin.functions";
 import {
+  applyQuestionImageStorage,
   bulkDeleteAdminQuestions,
   bulkUpdateAdminQuestionStatus,
   getAdminQuestions,
@@ -80,6 +82,7 @@ export function QuestionBankManager() {
   const bulkDeleteQuestions = useServerFn(bulkDeleteAdminQuestions);
   const saveQuestion = useServerFn(upsertAdminQuestion);
   const seedSyllabus = useServerFn(seedOfficialJambSyllabus);
+  const applyImageStorage = useServerFn(applyQuestionImageStorage);
 
   const [isBulkOpen, setIsBulkOpen] = useState(false);
   const [isConfirmSeedOpen, setIsConfirmSeedOpen] = useState(false);
@@ -89,6 +92,11 @@ export function QuestionBankManager() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const imageStorageMutation = useMutation({
+    mutationFn: () => applyImageStorage({}),
+    onSuccess: (res) => toast.success(res.message),
+    onError: (err: Error) => toast.error(err.message),
+  });
 
   // Edit / Add Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -168,7 +176,10 @@ export function QuestionBankManager() {
       toast.success(`${res.count} question(s) deleted`);
       setIsConfirmDeleteOpen(false);
       setSelectedQuestionIds([]);
+      clearCachedPracticePages();
       void queryClient.invalidateQueries({ queryKey: ["admin-questions"] });
+      void queryClient.invalidateQueries({ queryKey: ["practice-page"] });
+      void queryClient.invalidateQueries({ queryKey: ["practice-page-multi"] });
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -394,6 +405,22 @@ export function QuestionBankManager() {
           >
             <Zap className="size-3.5" />
             Seed JAMB Syllabus
+          </Button>
+
+          <Button
+            onClick={() => imageStorageMutation.mutate()}
+            variant="outline"
+            size="sm"
+            disabled={imageStorageMutation.isPending}
+            className="h-9 gap-1.5 text-xs"
+            title="Create or configure the Supabase question image bucket"
+          >
+            {imageStorageMutation.isPending ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <UploadCloud className="size-3.5" />
+            )}
+            {imageStorageMutation.isPending ? "Applying..." : "Apply Image Storage"}
           </Button>
 
           <Button

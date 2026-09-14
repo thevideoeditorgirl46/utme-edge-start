@@ -4,6 +4,68 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 import { assertAdmin } from "./net.server";
 
+const QUESTION_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
+
+export const applyQuestionImageStorage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const storage = supabaseAdmin.storage;
+    const bucketConfig = {
+      public: true,
+      fileSizeLimit: `${QUESTION_IMAGE_MAX_BYTES}B`,
+      allowedMimeTypes: ["image/png", "image/jpeg", "image/webp"],
+    };
+    const { error: createError } = await storage.createBucket("question-images", bucketConfig);
+
+    if (createError && !/already exists|duplicate/i.test(createError.message)) {
+      throw new Error(`Could not create image storage: ${createError.message}`);
+    }
+
+    const { error: updateError } = await storage.updateBucket("question-images", bucketConfig);
+    if (updateError) throw new Error(`Could not configure image storage: ${updateError.message}`);
+
+    return { ok: true, message: "Question image storage is ready" };
+  });
+
+export const uploadQuestionImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { dataUrl: string }) => {
+    if (!input?.dataUrl || !/^data:image\/(png|jpeg|jpg|webp);base64,/i.test(input.dataUrl)) {
+      throw new Error("Only PNG, JPG, or WEBP images are accepted");
+    }
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+
+    const { dataUrlToBytes } = await import("./verify.server");
+    const bytes = dataUrlToBytes(data.dataUrl);
+    if (bytes.byteLength > QUESTION_IMAGE_MAX_BYTES) {
+      throw new Error("Image must be smaller than 8 MB after compression");
+    }
+
+    const mimeMatch = data.dataUrl.match(/^data:(image\/(?:png|jpeg|jpg|webp));base64,/i);
+    const contentType = mimeMatch?.[1]?.toLowerCase() ?? "image/jpeg";
+    const extension =
+      contentType === "image/png" ? "png" : contentType === "image/webp" ? "webp" : "jpg";
+    const path = `${userId}/${crypto.randomUUID()}.${extension}`;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.storage.from("question-images").upload(path, bytes, {
+      contentType,
+      cacheControl: "31536000",
+      upsert: false,
+    });
+    if (error) throw new Error(`Image upload failed: ${error.message}`);
+
+    const { data: publicUrl } = supabaseAdmin.storage.from("question-images").getPublicUrl(path);
+    return { url: publicUrl.publicUrl };
+  });
+
 export type AdminQuestionItem = {
   id: string;
   topicId: string;
@@ -253,14 +315,35 @@ export const bulkDeleteAdminQuestions = createServerFn({ method: "POST" })
     await assertAdmin(supabase, userId);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const dependentTables = [
+      "question_revisions",
+      "question_bookmarks",
+      "question_notes",
+      "question_attempts",
+    ] as const;
+
+    for (const table of dependentTables) {
+      const { error } = await supabaseAdmin
+        .from(table)
+        .delete()
+        .in("question_id", data.questionIds);
+      if (error) throw new Error(`Failed to delete ${table}: ${error.message}`);
+    }
+
     const { data: deleted, error } = await supabaseAdmin
       .from("questions")
       .delete()
       .in("id", data.questionIds)
       .select("id");
 
-    if (error) throw new Error(error.message);
-    return { ok: true, count: deleted?.length ?? 0 };
+    if (error) throw new Error(`Failed to delete questions: ${error.message}`);
+    const deletedIds = new Set((deleted ?? []).map((question) => question.id));
+    const missingIds = data.questionIds.filter((id) => !deletedIds.has(id));
+    if (missingIds.length > 0) {
+      throw new Error(`Could not delete ${missingIds.length} selected question(s)`);
+    }
+
+    return { ok: true, count: deletedIds.size };
   });
 
 export const upsertAdminQuestion = createServerFn({ method: "POST" })

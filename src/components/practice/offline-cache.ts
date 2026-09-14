@@ -35,3 +35,17 @@ export function removeCachedData(key: string): void {
     // Ignore
   }
 }
+
+export function clearCachedPracticePages(): void {
+  if (typeof window === "undefined") return;
+  try {
+    for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+      const key = localStorage.key(index);
+      if (key?.startsWith(`${CACHE_PREFIX}page_`)) {
+        localStorage.removeItem(key);
+      }
+    }
+  } catch {
+    // Ignore storage errors silently
+  }
+}
