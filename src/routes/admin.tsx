@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -32,21 +33,14 @@ const FILTER_LABEL: Record<Filter, string> = {
 };
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({
-    meta: [
-      { title: "Admin console — Newton Edge Tutorial" },
-      {
-        name: "description",
-        content:
-          "Staff-only console for reviewing flyer-share verifications, student unlock status and verification settings.",
-      },
-      { property: "og:title", content: "Admin console — Newton Edge Tutorial" },
-      { property: "og:description", content: "Staff-only verification and student management." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
+  staticData: { sitemap: false },
+  head: () =>
+    pageHead({
+      path: "/admin",
+      title: "Admin console — Newton Edge Tutorial",
+      description: "Staff-only console for Newton Edge Tutorial.",
+      noindex: true,
+    }),
   component: AdminPage,
 });
 

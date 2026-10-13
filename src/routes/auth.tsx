@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
@@ -11,21 +12,13 @@ import { lovable } from "@/integrations/lovable";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({
-    meta: [
-      { title: "Sign in — Newton Edge Tutorial" },
-      {
-        name: "description",
-        content:
-          "Sign in to your Newton Edge Tutorial account to access the Foundational Class dashboard.",
-      },
-      { property: "og:title", content: "Sign in — Newton Edge Tutorial" },
-      {
-        property: "og:description",
-        content: "Access your Foundational Class dashboard, class links and practice.",
-      },
-    ],
-  }),
+  staticData: { sitemap: true },
+  head: () =>
+    pageHead({
+      path: "/auth",
+      title: "Sign in — Newton Edge Tutorial",
+      description: "Sign in to your Newton Edge Tutorial account to access your UTME Foundational Class dashboard, class links and Edge Practice.",
+    }),
   component: AuthPage,
 });
 

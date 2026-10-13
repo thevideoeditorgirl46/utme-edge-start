@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
@@ -20,21 +21,13 @@ import {
 } from "@/lib/brand";
 
 export const Route = createFileRoute("/register/")({
-  head: () => ({
-    meta: [
-      { title: "Register free — Foundational Class | Newton Edge Tutorial" },
-      {
-        name: "description",
-        content:
-          "Register free for the Newton Edge Tutorial Foundational Class for UTME candidates. Four quick steps, instant class access.",
-      },
-      { property: "og:title", content: "Register free — Foundational Class" },
-      {
-        property: "og:description",
-        content: "Four quick steps and your Foundational Class access is available immediately.",
-      },
-    ],
-  }),
+  staticData: { sitemap: true },
+  head: () =>
+    pageHead({
+      path: "/register",
+      title: "Register Free — UTME Foundational Class | Newton Edge Tutorial",
+      description: "Register free for the Newton Edge Tutorial Foundational Class for UTME/JAMB candidates. Four quick steps and instant access to Telegram and WhatsApp classes.",
+    }),
   component: RegisterPage,
 });
 
