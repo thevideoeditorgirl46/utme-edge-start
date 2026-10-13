@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as PracticeRouteImport } from './routes/practice'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RegisterIndexRouteImport } from './routes/register.index'
 import { Route as RegisterSuccessRouteImport } from './routes/register.success'
 
@@ -42,6 +43,11 @@ const PracticeRoute = PracticeRouteImport.update({
   path: '/practice',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterIndexRoute = RegisterIndexRouteImport.update({
   id: '/register/',
   path: '/register/',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/practice': typeof PracticeRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/register/success': typeof RegisterSuccessRoute
   '/register/': typeof RegisterIndexRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/practice': typeof PracticeRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/register/success': typeof RegisterSuccessRoute
   '/register': typeof RegisterIndexRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/practice': typeof PracticeRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/register/success': typeof RegisterSuccessRoute
   '/register/': typeof RegisterIndexRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/practice'
+    | '/sitemap.xml'
     | '/register/success'
     | '/register/'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/practice'
+    | '/sitemap.xml'
     | '/register/success'
     | '/register'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/practice'
+    | '/sitemap.xml'
     | '/register/success'
     | '/register/'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
   PracticeRoute: typeof PracticeRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   RegisterSuccessRoute: typeof RegisterSuccessRoute
   RegisterIndexRoute: typeof RegisterIndexRoute
 }
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PracticeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register/': {
       id: '/register/'
       path: '/register'
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
   PracticeRoute: PracticeRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   RegisterSuccessRoute: RegisterSuccessRoute,
   RegisterIndexRoute: RegisterIndexRoute,
 }
