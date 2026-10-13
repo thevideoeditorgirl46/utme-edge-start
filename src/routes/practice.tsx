@@ -1,3 +1,4 @@
+import { clearPracticeSession } from "@/components/practice/session-store";
 import { pageHead } from "@/lib/seo";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -51,6 +52,13 @@ export const Route = createFileRoute("/practice")({
 
 function PracticePage() {
   const navigate = useNavigate();
+  const handleEndSession = () => {
+    clearPracticeSession();
+    navigate({
+      to: "/practice",
+      search: { subject: undefined, topic: undefined, topics: undefined, page: undefined, tab: "practice" },
+    });
+  };
   const search = Route.useSearch();
   const { user, loading } = useAuth();
   const queryClient = useQueryClient();
@@ -226,6 +234,7 @@ function PracticePage() {
               currentPage={page}
               onPageChange={handlePageChange}
               onBackToTopics={handleBackToTopics}
+              onEndSession={handleEndSession}
             />
           ) : (
             <PracticeEngine
@@ -234,6 +243,7 @@ function PracticePage() {
               currentPage={page}
               onPageChange={handlePageChange}
               onBackToTopics={handleBackToTopics}
+              onEndSession={handleEndSession}
             />
           )
         ) : subject ? (

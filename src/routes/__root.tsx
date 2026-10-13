@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import "../lib/sitemap";
 
 function NotFoundComponent() {
   return (
@@ -73,6 +74,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -88,11 +90,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "Newton Edge" },
-      { property: "og:title", content: "Newton Edge Tutorial — Foundational Class" },
-      {
-        property: "og:description",
-        content: "Build a strong UTME foundation with Newton Edge Tutorial.",
-      },
+      { name: "robots", content: "index, follow" },
+      { property: "og:site_name", content: "Newton Edge Tutorial" },
+      { property: "og:locale", content: "en_NG" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
