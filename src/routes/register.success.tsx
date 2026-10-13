@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CheckCircle2 } from "lucide-react";
 
@@ -6,21 +7,14 @@ import { Header } from "@/components/site/Header";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/register/success")({
-  head: () => ({
-    meta: [
-      { title: "Registration confirmed — Newton Edge Tutorial" },
-      {
-        name: "description",
-        content:
-          "Your Foundational Class registration is confirmed. Class access is now available on your dashboard.",
-      },
-      { property: "og:title", content: "Registration confirmed — Newton Edge Tutorial" },
-      {
-        property: "og:description",
-        content: "Your Foundational Class registration is confirmed.",
-      },
-    ],
-  }),
+  staticData: { sitemap: false },
+  head: () =>
+    pageHead({
+      path: "/register/success",
+      title: "Registration confirmed — Newton Edge Tutorial",
+      description: "Your Foundational Class registration is confirmed.",
+      noindex: true,
+    }),
   validateSearch: (search: Record<string, unknown>) => ({
     id: typeof search["id"] === "string" ? search["id"] : "",
   }),

@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { Hero } from "@/components/landing/Hero";
@@ -15,21 +16,15 @@ import { Stories } from "@/components/landing/Stories";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
 
-const title = "Newton Edge Tutorial — Free Foundational Class for UTME";
-const description =
-  "Free foundational UTME class: master calculations, core concepts, formulas and speed, plus 3 timed mock exams. Register in under 3 minutes.";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  staticData: { sitemap: true },
+  head: () =>
+    pageHead({
+      path: "/",
+      title: "Newton Edge Tutorial — Free Foundational Class for UTME 2027",
+      description: "Free foundational UTME class for science candidates: master calculations, core concepts, formulas and speed, plus 3 timed JAMB mock exams. Register in under 3 minutes.",
+    }),
   component: Index,
 });
 

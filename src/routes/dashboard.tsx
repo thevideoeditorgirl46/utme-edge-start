@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -21,21 +22,14 @@ const SUBJECT_TELEGRAM_MAP: Record<string, keyof ClassLinks> = {
 };
 
 export const Route = createFileRoute("/dashboard")({
-  head: () => ({
-    meta: [
-      { title: "My dashboard — Newton Edge Tutorial" },
-      {
-        name: "description",
-        content:
-          "Your Foundational Class status, WhatsApp and Telegram class links, and the share-and-unlock practice reward.",
-      },
-      { property: "og:title", content: "My dashboard — Newton Edge Tutorial" },
-      {
-        property: "og:description",
-        content: "Foundational Class status, class links and practice access.",
-      },
-    ],
-  }),
+  staticData: { sitemap: false },
+  head: () =>
+    pageHead({
+      path: "/dashboard",
+      title: "My dashboard — Newton Edge Tutorial",
+      description: "Your Foundational Class status, class links and Edge Practice access.",
+      noindex: true,
+    }),
   component: DashboardPage,
 });
 

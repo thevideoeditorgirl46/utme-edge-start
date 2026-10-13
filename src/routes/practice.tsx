@@ -1,3 +1,5 @@
+import { clearPracticeSession } from "@/components/practice/session-store";
+import { pageHead } from "@/lib/seo";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -38,28 +40,25 @@ export const Route = createFileRoute("/practice")({
         : undefined,
     };
   },
-  head: () => ({
-    meta: [
-      { title: "Edge Practice — Newton Edge Tutorial" },
-      {
-        name: "description",
-        content:
-          "JAMB/UTME past-question practice for Newton Edge Foundational Class students with instant feedback, explanations, and bookmarks.",
-      },
-      { property: "og:title", content: "Edge Practice — Newton Edge Tutorial" },
-      {
-        property: "og:description",
-        content: "Practice UTME questions topic-by-topic with instant explanations.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  staticData: { sitemap: true },
+  head: () =>
+    pageHead({
+      path: "/practice",
+      title: "Edge Practice — JAMB/UTME Past Questions | Newton Edge Tutorial",
+      description: "Practise JAMB/UTME past questions topic by topic in Mathematics, English, Physics, Chemistry and Biology with instant answers and explanations.",
+    }),
   component: PracticePage,
 });
 
 function PracticePage() {
   const navigate = useNavigate();
+  const handleEndSession = () => {
+    clearPracticeSession();
+    navigate({
+      to: "/practice",
+      search: { subject: undefined, topic: undefined, topics: undefined, page: undefined, tab: "practice" },
+    });
+  };
   const search = Route.useSearch();
   const { user, loading } = useAuth();
   const queryClient = useQueryClient();
@@ -235,6 +234,7 @@ function PracticePage() {
               currentPage={page}
               onPageChange={handlePageChange}
               onBackToTopics={handleBackToTopics}
+              onEndSession={handleEndSession}
             />
           ) : (
             <PracticeEngine
@@ -243,6 +243,7 @@ function PracticePage() {
               currentPage={page}
               onPageChange={handlePageChange}
               onBackToTopics={handleBackToTopics}
+              onEndSession={handleEndSession}
             />
           )
         ) : subject ? (
