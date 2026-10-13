@@ -1,6 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /dashboard
 
 Sitemap: https://utme-edge-start.lovable.app/sitemap.xml
